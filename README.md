@@ -1,4 +1,5 @@
 # Bertelsmann_CloudArchitect_U1
+
 A study note for the Bartelsmann scholarship for Cloud Architect in Udacity NanoDegree.
 
 ---
@@ -54,23 +55,26 @@ your local (=your laptop) PowerShell (*). This is why we need to
 create Automation Account, separately from MicroSoft account that we
 use to log-in Azure Portal.
 
-WMF means 'Windows Management Framework', and is a software package
-that contains WinRM and PowerShell. WinRM means Windows Remote
+### Glossary
+
+*WMF* means 'Windows Management Framework', and is a software package
+that contains *WinRM* and *PowerShell*. WinRM means Windows Remote
 Management, and is a Web Service Management of the Microsoft version
-(*). Web Service Management is a type of protocol (=a bundle of rules,
-like HTTP, SSH, etc.) to communicate to web servers/services
-(*). Therefore we need WMF, more specifically, WinRM and PowerShell.
+(*). *Web Service Management* is a type of protocol (=a bundle of
+rules, like HTTP, SSH, etc.) to communicate to web servers/services
+(*). Therefore we need WMF, more specifically, WinRM and PowerShell
+inside WMF
 
 The differences among similar-looking services:
 
-Azure Policy : it sets individual restriction when we create a VM
+*Azure Policy* : it sets individual restriction when we create a VM
 (location, size, ...). The restrictions are mostly on hardware (*).
 
-ARM Template : by running a given description (=script) on the command
+*ARM Template* : by running a given description (=script) on the command
 line, one can create a VM without clicking menus on Azure Portal. The
 restrictions are mostly on hardware (*).
 
-Azure DSC : it also sets restrictions when a VM is created, like Azure
+*Azure DSC* : it also sets restrictions when a VM is created, like Azure
 Policy, but the DSC restrictions are exclusively on software (*). The
 business of Azure Policy and ARM Template are to create (=deploy)
 VMs. The business of DSC, however, includes monitoring (=watch) the
@@ -78,5 +82,15 @@ status of the software combination. DSC intervenes (install/remove
 software) when unwanted changes are made in the combination of the
 software.
 
-Azure Blueprint : Use all of them above (hardware+software) from one place (*).
+*Azure Blueprint* : Use all of them above (hardware+software) from one
+ place (*).
 
+---
+## Topics to note
+- NanoDegree Lab System
+- Load balancer
+- Virtual Network
+- Virtual Private Network and VPN Gateway (+ Express Route)
+- Application Gateway
+- VM and App Server
+- Network Security Group / Application Security Group
