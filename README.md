@@ -85,6 +85,189 @@ software.
 *Azure Blueprint* : Use all of them above (hardware+software) from one
  place (*).
 
+
+
+---
+## Virtual Network
+IP address must be unique in a subscription
+Virtual Private Network (VPN)
+= one virtual network that consits of Azure + On-premise)
+IP address must be unique inside a VPN)
+
+(scenario)
+ExpressRoute: No site-to-site. No encription. p2p. a2a. CloudExchange
+
+network security group: one for one subnet
+service endpoint: SQL/storage only from subnet with an endpoint
+                  - access from internet closed
+
+NVA = firewall
+
+*.*.*.0: network adress
+*.*.*.1: taken by azure for default gateway 
+*.*.*.2,3: taken by Azure DNS
+*.*.*.256: broadcast
+
+VNet: need one subnet inside. max 50 in subscription.
+      can be increased to 500
+
+pvivate ID : to comunicate to other (Azure) resources in teh VNet
+             - do not change 
+
+public ID: to communicate to internet
+           - not change, if dynamic, and rebooted or stopped
+           - change, if dynamic, and deallocate
+
+
+need static public ID
+- static IP in DNS name resolution
+- static IP in security restriction
+- static IP linked in TLS/SSL cetificates
+- static IP in  Firewal rule
+- static IP in Domain Controllers/DNS server
+
+Basic / Standard : cannot change afterward
+
+NSG : 5 tuple, multiplication, use 'Effective security rules'
+use inside VNet
+- default
+65000 AllowVnetInBound
+65001 AllowAzureLoadBalancerInBound
+65500 DenyAllInBound
+
+65000 AllowVnetOutBound
+65001 AllowInternetOutBound
+65500 DenyAllOutBound
+
+service tag: change name to range of IP addresses
+VirtualNetwork/Internet/SQL/Storage/AzureLoadBalancer/AzureTrafficManager
+
+---
+Azure Monitor : Performance
+Azure Security Center : Security/Compliznce, summary
+   can install agent to Iaas/Paas 
+Azure Sentinel : Network Security in more detail
+   automated action. playbook/notebook, enterprise
+   Log Analytics, workspace, connectors
+
+Application Insights:
+  instrumentation = install agent
+
+---
+Firewall
+unrestricted scalability
+
+
+
+---
+## Virtual Machine
+- standard disk = HDD. Blobk, Page, 
+- premium disk = SDD. Page Blob only
+
+Blob Storage (hot and cool. no archive). block blob, incremental blob
+
+OS Storage : system disk. C:. <4GB. image. Linux 30GB, Windows 127GB
+Temporary Storage : swap. D: 
+Data Storage : all others. persistent. < 32TB
+(All blob)
+
+senario : onpremise -> azure
+VHD (Virtual Hard Drive). Stored as page blob
+1. local disk -> VHD ('Add-AzVhd') -> Storage Account 
+2. -> connect to VM
+
+add disk to Linux VM :
+az vm disk attach \
+  --vm-name support-web-vm01 \
+  --name uploadDataDisk1 \
+  --size-gb 64 \
+  --sku Premium_LRS \
+  --new
+
+(how to get public ID)
+az vm show
+
+
+get ipaddress
+
+(to execute command lsblk in 'vm01')
+ssh azureuser@ipaddress lsblk
+
+
+---
+99.999% five nine
+
+Premium Storage
+- Dynamic CRM, Exchange Server, SAP Business Suite,
+- SQL Server, Oracle, Share Point
+- LRS only
+
+Ultra Disk - can chanbe performance, no need to restart VM
+SAP HANA
+Dv3  : cannot use Premium
+Dsv3 : can use Premium
+
+Standard SSD: small size VM, but fast storage case
+
+LRS : 3 in 3 VMs   in a data center
+ZRS : 3 in 3 Zones in a region 
+GRS : 2 in 2 Regions
+GZRS : (3 in 3 Zones) x 2 in 2 Regions
+
+RA-GRS  : second one is read-only. only for backup 
+RA-GZRS : second one is read-only. only for backup 
+
+disk 'level'
+P4    -  P80
+32GB  -  32TB
+
+---
+(Making disk size larger) cannot make it smaller
+- stop VM
+az vm deallocate --resource-group --name
+az disk update  --resource-group --name --size-gb 200
+az vm start --resource-group --name
+expand particition 'diskpart' / parted / resize2fs
+
+az disk list \
+  --query '[*].{Name:name,Gb:diskSizeGb,Tier:sku.tier}' \
+  --output table
+
+
+
+
+---
+
+az configure --defaults location=eastus
+az configure --defaults group="learn-02e70cf3-d998-4177-8d30-1e12a9040db6"
+az vm create \
+  --name support-web-vm01 \
+  --image Canonical:UbuntuServer:16.04-LTS:latest \
+  --size Standard_DS1_v2 \
+  --admin-username azureuser \
+  --generate-ssh-keys
+az vm disk attach \
+  --vm-name support-web-vm01 \
+  --name uploadDataDisk1 \
+  --size-gb 64 \
+  --sku Premium_LRS \
+  --new  
+
+ipaddress=$(az vm show \
+  --name support-web-vm01 \
+  --show-details \
+  --query [publicIps] \
+  --output tsv)
+
+ssh azureuser@$ipaddress lsblk
+
+az vm extension set \
+  --vm-name support-web-vm01 \
+  --name customScript \
+  --publisher Microsoft.Azure.Extensions \
+  --settings '{"fileUris":["https://raw.githubusercontent.com/MicrosoftDocs/mslearn-add-and-size-disks-in-azure-virtual-machines/master/add-data-disk.sh"]}' \
+  --protected-settings '{"commandToExecute": "./add-data-disk.sh"}'
+
 ---
 ## Topics to note
 - NanoDegree Lab System
