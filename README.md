@@ -154,12 +154,82 @@ Application Insights:
   instrumentation = install agent
 
 ---
-Firewall
-unrestricted scalability
+Firewall : stateful, (multiple) static IP, SNAT/DNAT
+unrestricted scalability, loggging, Azure Monitor
+high-availability, Availability Zones
+(no additional LB required. _FOR_ firewall)  
+(LB for backend still required?)
+Microsoft Threat Inteligence, list of malicious IP
+FQDN filtering HTTP/S traffic on not IP, but on name
+hub-spoke. subnet /27. Bastian, VPN Gateway
+SecOps|DevOps separation, cross subscription
+log -> Azure Monitor
+1. NAT rules : Firewall external IP (single) -> private address
+2. Network rules : TCP/UDP/ICMP(non HTTP/S)
+3. Application rules : full name. outbound
+
+
+---
+Azure Monitor : Azure + on-premise, metric + log
+insights/analysis/integrate/resopnd/visualize
+insights: app, vm, container
+analyzie: matric/log analytics
+integrate: logic apps, export APIs
+respond: alert/autoscale
+visualize: dashboard/workbook/power BI
+SQL: enable diagnostics
+vm: add agent
+kusto:  query language
+
+---
+Azure Monitor Log -> store in Log Analytics Workspace
+VM syslog, windows event log
+VM insights 
 
 
 
 ---
+Azure Alert <- Azure Monitor
+metric alert : CPU 95%
+activity log alert : resource deleted
+log alert : 404 error
+
+
+
+---
+Azure DNS
+
+---
+Azure Queue Storage 
+REST base. store millions of messages.
+
+Azure Service Bus
+message broker 
+Service Bus Topic : multiple subscription
+Service Bus Queue : at-most-once, FIFO, transaction (=atomic), push
+Queue Storage : need audit, >80GB
+
+
+---
+Scope
+Policy : MG/SUB/RG
+Role : Sub/RG/R
+
+
+---
+Azure Active Directory (Azure AD)
+Security Principal : an 'object' (user, group, service) to which
+                     a role is given. 
+
+---
+Storage Account
+Data in transitit : Client-Side Encryption, HTTPS, SMB 3.0
+Shared Access Signature : delegated access, time interval
+Authorization: RBAC,Sshared Key, SAS, Anonymous access (web contents)
+
+---
+END
+===
 ## Virtual Machine
 - standard disk = HDD. Blobk, Page, 
 - premium disk = SDD. Page Blob only
