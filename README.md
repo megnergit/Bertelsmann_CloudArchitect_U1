@@ -154,6 +154,15 @@ Application Insights:
   instrumentation = install agent
 
 ---
+Network:
+- VPN Gateway
+- Application Gateway
+- Firewall
+- Azure DNS
+- Azure Bastion
+
+
+---
 Firewall : stateful, (multiple) static IP, SNAT/DNAT
 unrestricted scalability, loggging, Azure Monitor
 high-availability, Availability Zones
