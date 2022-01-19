@@ -86,8 +86,32 @@ software.
  place (*).
 
 
+---
+#### Cosmos DB (~Cloud Spanner)
+NoSQL, global
+MongoDB/Cassandra/Gremlin, JSON,XML
+Multimaster, 99.999%
+
 
 ---
+#### Storage Account
+hot/cool(30d)/archive(180d) need StorageV2+Blob storage
+GRS: GR + LRS
+RAGRS: GRS (one is read only. more expensive than GRS)
+GZRS: GR + ZRS
+need StorageV2
+
+
+---
+#### VNet Peering
+- global, over subscritpions, over regions.
+- no gateway (no cost for gateway)
+- traffic cost
+- when one connected, the other also connected
+
+HTTP = TCP at 80
+RDP  = TCP at 3389
+
 ## Virtual Network
 IP address must be unique in a subscription
 Virtual Private Network (VPN)
@@ -102,6 +126,7 @@ service endpoint: SQL/storage only from subnet with an endpoint
                   - access from internet closed
 
 NVA = firewall
+behind gateway? in DMZ? 
 
 *.*.*.0: network adress
 *.*.*.1: taken by azure for default gateway 
@@ -235,6 +260,12 @@ Storage Account
 Data in transitit : Client-Side Encryption, HTTPS, SMB 3.0
 Shared Access Signature : delegated access, time interval
 Authorization: RBAC,Sshared Key, SAS, Anonymous access (web contents)
+
+---
+Resource Lock
+- Delete/ReadOnly
+- can move anywhere, unless it is not deleted
+
 
 ---
 END
