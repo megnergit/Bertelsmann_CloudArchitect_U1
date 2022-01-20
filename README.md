@@ -87,6 +87,44 @@ software.
 
 
 ---
+#### Azure Function
+timeout 5 min, max 10 min.
+cannot execute a function that takes > 10 min
+=> Durable Functions
+stateless. statefull -> use storage
+HTTP, queue
+max 200 instance?
+
+payasyougo : intermittant, autoscaling
+App Service: continuous (not severless)
+
+---
+#### Azure Event Hub
+AMQP : initial overhead high, first transmission
+HTTPS : each overhead low
+replace Kafka
+Basic/[Standard]/Premium/Dedicated
+1. Create a namespace: throughput/pricing/performance metric
+az eventhubs namespace create
+2. Create event hub in the namespace: partition/rentention
+az eventhubs eventhub create
+
+3. create storage account at subscriber
+az stroage account create
+az stroage account key list
+az stroage account show-connection-string
+az stroage container create
+
+default partition: 4
+max publication size : 1 MB
+
+---
+#### Azure Backup
+SQL Database, point-in-time backup
+Blob stored in RAGRS
+
+
+---
 #### Cosmos DB (~Cloud Spanner)
 NoSQL, global
 MongoDB/Cassandra/Gremlin, JSON,XML
@@ -265,6 +303,12 @@ Authorization: RBAC,Sshared Key, SAS, Anonymous access (web contents)
 Resource Lock
 - Delete/ReadOnly
 - can move anywhere, unless it is not deleted
++ storage may not be read even with ReadOnly
+  + cannot see list of keys (need POST)
+  + MS learn : 6-use-resource-locks-to-protect-resources
+- lock is inherited
+
+Azure SQL Database is a PaaS. 
 
 
 ---
