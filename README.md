@@ -85,6 +85,65 @@ software.
 *Azure Blueprint* : Use all of them above (hardware+software) from one
  place (*).
 
+---
+#### Azure Container Instances
+Persistent Storage : need Azure Files Share 
+
+
+---
+#### Moving Resources
+- another virtual network
+- another resource gropu
+- another subscription
+- another region
+Deleting resource group
++ check if other RG uses resource in
+Remove-AzResourceGropu -Name "ContosoRG01"
+Quota by _Subscription_
+
+
+---
+#### Azure API Management Service
+Azure API Gateway : an instance of API Management Service
+
+---
+#### Web App
+F1/D1: single instance (free/shared level)
+B1:2 instance
+S1/P1: autoscaling
+App Service Plan
+Standard <10 0.40/hr
+Premium  <20 0.80/hr 99.95%
+Isolated <100 1.60/hr 99.95%
+Metric: Disk Queue, HTTP requests
+Schedule
+scale out rule 'or'
+scale in rule 'and'
+metric | scale to a specific instance count (schedule)
+
+
+---
+#### VM Scale Set
+default : 2 instances, 1 loadbalancer
+health probe
+* az group create
+* az vmss create
+* az network lb probe create (ping)
+* az network lb rule create 
+low-priority scale set:automatic shutdown, 80% cheaper
+
+
+---
+#### Redis
+transaction MULTI/EXEC/DISCARD
+do not support rolllback?
+DISCARD => stop
+failed => mess
+ServiceStack.Redis : C# library
+IRedisClient.CreateTransaction()
+QueueCommand()
+Commit()
+
 
 ---
 #### Azure Function
@@ -100,6 +159,7 @@ App Service: continuous (not severless)
 
 ---
 #### Azure Event Hub
+=> mostly for analysis or IoT | Azure Steam Analytics
 AMQP : initial overhead high, first transmission
 HTTPS : each overhead low
 replace Kafka
@@ -129,7 +189,6 @@ Blob stored in RAGRS
 NoSQL, global
 MongoDB/Cassandra/Gremlin, JSON,XML
 Multimaster, 99.999%
-
 
 ---
 #### Storage Account
@@ -253,7 +312,7 @@ SQL: enable diagnostics
 vm: add agent
 kusto:  query language
 
----
+----
 Azure Monitor Log -> store in Log Analytics Workspace
 VM syslog, windows event log
 VM insights 
@@ -280,6 +339,23 @@ message broker
 Service Bus Topic : multiple subscription
 Service Bus Queue : at-most-once, FIFO, transaction (=atomic), push
 Queue Storage : need audit, >80GB
+queues: temporary storage, FIFO, single receiver
+topics: multiple subscription 
+Service Bus Queue vs Storage Queue
+256 KB | 64 KB
+at-most-once/at-least-once | -
+FIFO | FIFO (not guranteed)
+can group | -
+RBAC | -
+80GB| unlimite queue size
+ -  | log
+need SAS keys
+clients neeed
+Namespace = endpoint bicycleService.servicebus.windows.net
+access key 
+Namespace + access key = connection string
+await SendMessageAsync (can send while waiting)
+      <
 
 
 ---
