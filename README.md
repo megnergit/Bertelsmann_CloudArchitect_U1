@@ -85,9 +85,173 @@ software.
 *Azure Blueprint* : Use all of them above (hardware+software) from one
  place (*).
 
+==========
+# AZ-104
+==========
+#### Virtual Machine Scale Set
+Unplanned Hardware Maintenance: live migration, low performance
+Unexpected Downtime: automatic heal, reboot
+Planned Mainenance: no impact
+availability set: VM should habe managed disks. 99.95%
+fault domain  
+update domain <= 20 
+availability zones: 99.99%
+single VM + Premium disks: 99.9% 
+Azure Load Balancer: layer 4 (transport, TCP, UDP)
+Azure Application Gateway: layer 7 (application, HTTP, X500)
+                           SSL termination
+scale set < 1000
+custom image < 600
+
+----
+#### Virtual Machine
+1. network
+2. Region
+3. Size
+4. Storage/OS
+       compute: webserver, application server, network appliance
+memory: SQL
+OS system disk : SATA
+data disk : SCSI
+Temp. disk : /dev/sdb /mnt
+UbuntuLTS (longterm support)
+monitor, agent, script, extention
+window:rdp
+linux:ssh PuTTY
+Azure Bastion:PaaS RDP or SSH
+WinRM (Windows Remote Management): command-line session
+non-interactive PowerShell scripts. port 5986 (NSG!)
+1. Create Key Bault
+2. Create self-signed certificate
+3. Upload self-signed certificate to Key vault
+4. Identify URL of certificate
+5. Refer URL in VM configuration
+Linux VM : SSH = encripted
+public Key => VM
+private Key => your laptop
+SSH-RSA 2048bit
+
+==========
+# 30 days
+==========
+#### Azure PowerShell
+Ubuntu Devian apt-get
+RedHat CentOS yum
+SUSE zypper
+Fedora dnf
+Mac Homebrew
+brew install --cask powershell
+pwsh
+commandlet cmdlet
+Verb-Object
+Get-Module (like a library)
+Az : Azure PowerShell cmdlet official name, ~hundreds cmd
+PowerShell Gellery
+Install-Module -Name Az -Scope CurrentUser -Repository PSGallery -Force
+Update-Module -Name Az
+(connect so Azure)
+
+Connect-AzAccount
+Set-AzContext -Subscription ''
+Get-AzResourceGroup
+Get-AzResourceGropu | Format-Table
+New-AzResourceGropu -Name NAME -Location LOCATION
+Get-AzResource | Format-Table
+Get-AzResource -ResourceGropuName ExerciseResource
+New-AzVm -ResourceGropuName $RG -Name $VM1 -Credential $OBJ
+         -Location $LOCATION -Image $IMAGE
+Remove-AzVM
+Start-AzVM
+Stop-AzVM
+Restart-AzVM
+Update-AzVM
+Get-AzVM -Status
+
+$ResourceGroupName = "ExerciseResources"
+$vm = Get-AzVM  -Name MyVM -ResourceGroupName $ResourceGroupName
+$vm.HardwareProfile.vmSize = "Standard_DS3_v2"
+Update-AzVM -ResourceGroupName $ResourceGroupName  -VM $vm
+(update the variable 'vm')
+
+@vm | Get-AzPulicIpAddress
+Integrated Scripting Environment
+.ps1
+variables: $loc = "East US"
+$adminCredential = Get-Credential
+New-AzResourceGroup -Name "RG" -Location $loc
+loops: For ($i=1; $i-lt 3; $i++)
+{
+$i
+}
+script.ps1 -size 5 -location "East US"
+param([int]$size, [sgting]$location)
+UbuntuLTS (longterm support)
+
+
+---
+#### ARM Template
+{
+"$schema"
+"contentVersion":"",
+"parameters":{},     # type, defaultValue, allowedValues
+"variables":{},
+"functions":[],
+"resources":[],
+"outputs":{}
+}
+quick start template
+if identical ARMT executed twice, nothing happens
+
+---
+#### Azure Kubernetes Service
+not PaaS. only partly.
+
+
+---
+#### Azure Container Registry
+az group create -n RG --location westeurope
+az acr create -n NAME_UNIQ -sku Premium
+- edit Dockerfile
+az acr build --registry NAME_UNIQ --image hello:v1 .
+az acr build repository list -n NQME_UNIQ 
+credential: Azure AD (RBAC) | admin for registry
+az acr update -n NAME_UNIQ --admin-enabled true
+az acr credential show -n NAME_UNIQ => username, password
+az acr replication create
+az acr replication list
+can automate build and deploymen
+security, credential, encryption > Docker Hub
+webhook
+az acr task create
+1. GitHub monitored by ACR (task)
+   -> ACR build an image -> store
+2. webhook by ACR (image updated)
+   -> subscribed by App and Service -> App pull -> App restart
+
+
 ---
 #### Azure Container Instances
 Persistent Storage : need Azure Files Share 
+az container create -g RG -n mycontainer --image mcr.microsoft.com/
+DNS name label : can create new, but must be unique $RANDOM
+az container show --query "{FQDN:ipAddress.fqdn}"
+az container show --query "{ProvisioningState:provisioningState}"
+http://aci-demo-24331.eastuslazurecontainer.io
+restart policy : Always|Never|OnFailure 
+--environment-variables COSMOS_DB_ENDPOINT=$COSMOS_DB_ENDPOINT
+--source-environment-variables COSMOS_DB_ENDPOINT=$COSMOS_DB_ENDPOINT
+stateless service
+file share
+az storage account create
+az storage account show-connection-string
+az storage share create -n NAME
+az storage account keys list
+az storage file list -s aci-share-demo -o table
+az storage file download -s aci-share-demo -p FILENAME
+az container logs
+az container attach
+az container exec
+az monitor metrics list --resource CONTAINER_ID --metrics CPUUsage
 
 
 ---
@@ -102,9 +266,22 @@ Remove-AzResourceGropu -Name "ContosoRG01"
 Quota by _Subscription_
 
 
+
 ---
 #### Azure API Management Service
 Azure API Gateway : an instance of API Management Service
+
+---
+#### Azure App Service
+PaaS
+deploy slot
+CI/CD
+Azure DevOps: build, release
+create web app resource
+windows -> monitor on -> Application Insights
+az webapp up (automatic creation of Web App)
+az webapp deployment source config-zip
+
 
 ---
 #### Web App
@@ -389,13 +566,13 @@ Azure SQL Database is a PaaS.
 
 ---
 END
-===
-## Virtual Machine
+	<
+
+---
+#### Storage for Virtual Machine
 - standard disk = HDD. Blobk, Page, 
 - premium disk = SDD. Page Blob only
-
 Blob Storage (hot and cool. no archive). block blob, incremental blob
-
 OS Storage : system disk. C:. <4GB. image. Linux 30GB, Windows 127GB
 Temporary Storage : swap. D: 
 Data Storage : all others. persistent. < 32TB
@@ -423,8 +600,6 @@ get ipaddress
 (to execute command lsblk in 'vm01')
 ssh azureuser@ipaddress lsblk
 
-
----
 99.999% five nine
 
 Premium Storage
