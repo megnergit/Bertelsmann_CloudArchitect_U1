@@ -88,6 +88,178 @@ software.
 ==========
 # AZ-104
 ==========
+----
+#### Private Endpoint -> Private Link
+PaaS
+
+----
+#### Service Endpoint
+Endpoint of VNet (private IP) -> Azure service
+now one can use Azure service from VNet
+keep Azure serivice out of reach from public IP
+service traffic does not need to go to UDR
+1. Create Service Endpoint
+   + which service?
+   - Storage
+   - SQL Database/Warehouse/PostgreSQL/MySQL/CosmosDB
+   - Key Vault
+   - Service Bus/Event Hubs
+----
+#### User Defined Route Table
+System Route : default route inside a VNet, between Subnets
+User Defined Route: define NVA as a next hop
+1 route table to many subnets
+one subnet can have only one route table
+NVA are VMs
+1. Create Routing Table
+- Name, Subscription, RG, location, 
+- VNet route propagation
+  + current subnet route is automatically added to table
+2. Create Custom Route ('Add route')
+- Name
+- Address prefix (= subnet mask) 10.0.1.0/24
+- Next hop : [VNet Gateway, NVA, VNet, Internet...]
+  + let's say NVA is 10.0.2.4
+=> any incoming packets that are directed to 10.0.1.0/24
+   are sent to 10.0.2.4 first.
+3. Associate Route Table
+- 'Add subnet. 10.0.1.0/24, Route Table Name
+----
+#### ExpressRoute
+collocation environment/center ~ community cloud
+Exchange provider facility
+MPLS multiprotocol label switching
+100Gbps
+- regular data migration
+- disaster recovery (for on-premise)
+layer 3, BGP
+Redundancy: ExpressRoute has two links to MSEE
+MSEE: Microsoft Enterprise Edge Routers
+Azure/Microsoft 365/Dynamics 365
+All regions in one Geo
+ExpressRoute to Amsterdam -> North+West Europe
+ExpressRoute Premium -> Global except domestic
+ExpressRoute Global Reach -> connect multiple on-premises
+site-to-site = ExpressRoute + VPN Gateway link
+need 2 Gateways - VPN Gateway + ExpressRoute Gateway
+ExpressRoute - 3 way conection
+1 CloudExhante (colocate?) layer 2/3
+2 Point-to-point. layer 2/managed layer 3
+3 Any-to-any (IPVPN). many VNets to many on-premise. WAN. MPLS. layer 3
+4 NO site-to-site. but can do that in PowerShell
+
+----
+#### Azure Virtual WAN
+many on-premise + many VNets
+on-premise -> (regional Hub) -> Azure VNet
+(resional Hub 1) = (regional Hub 2) by Azure backbone
+site-site and point-to-site by VPN Gateway + ExpressRoute
+Basic : site-site by VPN Gateway only
+Standard : ER-p2s. 
+
+----
+#### VPN Gateway
+IPSec: encription IKES: authentication, 
+minimun 2 VMs, can be in Availability Zones
+1. VNet, Subnet, DNS server (internal)
+2. AzureGatewaySubnet
+3. Create VPN Gateway
+4. Create Local Network Gateway. This is on Azure
+5. VPN Device (on-premise)
+6. VPN Connection
+No overlap in IP Address space
+GatewaySubnet /27 or /28. No other VM on GatewaySubnet
+(subnet required for Bastion. no for Load Balancer)
+VPN Gateway
+- Name, Region, VPN/ExpressRoute, Route/Policy-base
+- SKU:VpnGW1 (number of tunnels), Generation
+- active-active, BGP ASN
+Route-Base: point-site/inter-VNet/multiple-site-site/ExpressRoute
+Use IP forwarding, Route table to direct packet to tunnel. any-to-any
+Policy base cannot do point-site. only IKEv1
+combination of address prefixes between VNet and on-premise
+need an access list. SKU: Basic only. one tunnel. site-to-site only
+SKU: VPNGw1-5, 650Mbps-10GBps
+Local Network Gateway is in on-premise, but need to specify on Azure
+IP Address of VPN device. Must be public IP
+Address space (aka Address prefix aka IP address mask) of on-pre machines.
+VPN Device (on on-pre) Cisco, Juniper, Ubiquiti, Barracuda
+need Shared Key (PSK? one can create yourself),
+Public IP. VPN device configuration script
+Add connection => Portal: when two VNets are on same subscription
+active-standby 10-15s, 60-90s
+
+
+----
+#### VNet Peering
+- Region VNet Peering
+- Global VNet Peering (but not from Azure Goverment)
+For Azure Goverment, regional peering only
+- Microsoft Backbone Network. No encryption. No Gateway
+- No downtime
+one Gateway for one VNet
+Allow Gateway Transit
+nontransitive
+User Defined Route : eneable next hop (IP address)
+Service Chaining
+Status : Initiated Connected
+
+----
+#### ARM Tempalte
+Get-AzSubscription
+$context = Get-AzSubscription -SubscriptionId {Your subscription ID}
+Set-AzContext $context
+Set-AzDefault -ResourceGroupName learn-09e42320-c4cd-434a-87a2-dcfa7246a4f2
+
+
+----
+#### Azure CLI
+az vm restart -g RG -n VM1
+Azure Cloud Shell <- Azure Portal |_>
+- Linux: apt-get(Ubuntu), yum(Redhat), zypper(SUSE)
+- Mac: brew
+CLI: variable=variable
+PowerShell: $variable=variable
+brew update
+brew install azure-cli
+az (group) (subgroup)
+az storage (account|blob|queue)
+to find command : az find blob (AI robot)
+az find "az vm"
+az find "az vm create"
+az storage blob --help
+az storage blob -h
+az login => sign-in page => to connect to a subscription 
+az group create -n NAME --location LOCATION (to put metadata)
+"Wset US" "West Europe" "westus" "westeurope"
+az group list -o table
+
+
+
+----
+#### Virtual Machine Extention
+- Extensions
+- Custom Script
+- Desired State Configuration (DSC)
+
+- Extensions
+small aplications. post-deployment configuration.
+automation task. software installation. anti-virus protection.
+like an autoexec.bat.
+- Custom Script Extensions (CSE)
+Azure Portal -> Extensions -> PowerShell script
+Set-AzVmCustomScriptExtentions -FileUri https://scriptstore.blob..
+Timeout: 90 min; Dependencies;
+- Desired State Configuration
+DSC is a PowerShell Script *.ps1
+Configuration IISInstall{
+ Node "localhost"{
+  WindowsFeature IIS{ # resource block
+   Ensure = "Present"
+   Name = 'Web-Server"
+}}}
+
+----
 #### Virtual Machine Scale Set
 Unplanned Hardware Maintenance: live migration, low performance
 Unexpected Downtime: automatic heal, reboot
@@ -101,7 +273,8 @@ Azure Load Balancer: layer 4 (transport, TCP, UDP)
 Azure Application Gateway: layer 7 (application, HTTP, X500)
                            SSL termination
 scale set < 1000
-custom image < 600
+scale set with custom image < 600
+Azure Spot Instance: 
 
 ----
 #### Virtual Machine
