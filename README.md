@@ -89,9 +89,63 @@ software.
 # AZ-104
 ==========
 ----
+#### Azure Application Gateway
+
+
+----
+#### Azure App Service Plan
+Server farm. Tied to a Region
+- Region/number of VM/size of VM
+Free/Shared: not scale out. VM shared by other customer Apps. no SLA
+Basic: no scaling. Dev/Test
+Standard/Premium/Isolated: can be product level
+multiple Apps share one/more VM
+deploy slots share one/more VM
+diagnostics, backup also on same VM
+5 Apps on 5 VMs => scales simultaneously
+'Isolated' : app is resorce intensice/scale independently/in other geo
+Scale up: change plan. can scale down as well. a few seconds
+Scale out: number of VM. < 30 (Isolated. VM <100) 
+Autoscaling: VM instance-base. Scale-out (OR). Scale-in (AND)
+Metric/Schedule
+can scale in to zero.
+Alert -> e-mail, webhook
+
+
+
+----
+#### Azure Load Balancer
+TCP/UDP
+internal/public
+Public Load Balacer
+Public IP (TCP/80) of LB->(map) -> Private IPs of VMs
+Internal Load Balacer
+Private IPs of VMs -> LB -> (map) -> Private IPs of VMs on other subnet
+all has to be in one VNet
+- multi tier application = Web Frontene + SQL
+- line of business = important for business
+- SOA = service oriented architecture
+SKU: Basic/Standard
+HTTPS, Availability Zones (backend), 99.99: only for Standard
+backend pools: must be on one VNet. <1000 VMs
+can VNet host VMs in different regions? => No. Single region
+(so, no Region-pair, but Availability Zones are okay)
+Load Balancer Rules: equal distribution, 5-tuple hash
+Frontend/Backend/Protocaol/Port/Backend/HealthProbe/SessionPersistence
+LB public IP -> NAT rules -> TCP 3389 (RDP) to specific VM
+Session Persistence
+5-tuple (Source IP/port/Destination IP/port/protocol)
+protocol is common
+5-tuple -> 3 tuple or 2 tuple
+look at source IP/port and protocol (3) or source IP/port only (2)
+- shopping cart
+Health Probe
+1. Create one.
+   + HTTP poll every 15 sec, 'HTTP 200' withing 31 sec. backend URI
+   + TCP: if connection is successful
+----
 #### Private Endpoint -> Private Link
 PaaS
-
 ----
 #### Service Endpoint
 Endpoint of VNet (private IP) -> Azure service
