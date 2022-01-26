@@ -89,7 +89,210 @@ software.
 # AZ-104
 ==========
 ----
+#### Sahred Access Signature
+- Public Access, aka anonymous public read access
+  + AllowBlobPublicAccess
+    - now possible blobs, container may be accessible
+  + Public read access for blobs / container and blobs
+    - cannot set for each blobs. but whole blobs in a container
+- Azure AD
+  + Oauth2.0 token -> storage account
+    - managed Identity: identity assigned to an App
+    - App can access to Key Vault and so on
+- Shared Key
+  + two 512-bit keys (az storage account keys list) => Key Valut 
+- Shared Access Signature
+  + read-only, read-write, expiration
+  + User delegation / Service SAS / Account SAS
+Shared Access Signature : URI + Token
+single URI, 'sp=...' is a Token
+sp=(r|w|l|d) read, write, list, delete
+st=startime, se=expiry time, sr=scope, b:blob
+sig=signature: account key
+C#: container = BlobContainerClient()
+    blog = container.GetblogClient()
+    BlobSasBuilder(blob.BlobContainerName ...)
+    sas.SetPermissions(BlobSasPermissions.Read)
+- always HTTPS - user delegation SAS
+az storage account create
+az storage container create
+Stored Access Policy
+----
+#### Azure Storage Account
+regional. Need two accounts when you want them in two locations.
+Name 3-24. alphabet + number (no symbols)
+Storage V2
+Blob Storage : Block, incremental (log)
+
+----
+#### AzCopy
+azcopy [make|copy|sync|remove|list|jobs]
+Data Lake Storage Gen2 API. Blob only
+Authentication: Azure AD. azcopy login.
+Storage Blob Data Contributor
+SAS
+azcopy copy [source] [dest] [flat]
+can copy data between two storage accounts
+run in background -> large files with fragile connection
+
+----
+#### Azure Import/Export
+Blob Storage or Files
+1. Get Disks
+2. install 'WAImportExport'
+3. copy data with WAImportExport.
+4. Encrypt drives with BitLocker -> Journal files
+5. On Azure Portal, create import job
+   - destination Storage Account / region
+6. Send disks. update Job with tracking number
+
+----
+#### Azure Storage Explore
+Storage Management. 
+full access needs - access to strage acccount/container, Azure AD
+connect to Storage - [connection string | SAS|account key]
+access keys (primary and secondary) : az storage account keys list
+Azure Storage/Azure Cosmos DB/Azure Data Lake
+
+
+----
+#### Azure File Storage / File Sync
+File share/File share Snapshopt
+SMB protocol (TCP port 445). NAS. lift-and-shift
+Azure File Sync
+log, metric, crash dump
+images, artefact
+1. Storage account. Quota (=size)
+2. (Windows) Drive character Z -> copy script -> PowerShell on-premise
+3. (Linux) -> copy script -> run as sudo -> or /etc/fstab  
+Secure Transfer required turns off HTTP
+File Share Snapshot: just like time machine. file level. incremental
+- before you deploy a new app, take snapshot of data
+- editing text file -> snapshot
+- temporary backup
+File Sync
+- sync onpremise to Azure -> backup & disaster recovery
+- sync onpremise to Azure -> archive
+Stoarge Sync Service : like a Storage Account Create one.
+Sync Group: inside Storage Sync Service. Have endpoints
+Registered server: on-premise Windows -> add it to Sync Group
+Azure File Sync agent : install this to Registered server
+ - FIleSYncSvc.exe, StorageSync.sys,PowerShell cmdlets StorageSync  
+Server Endpoint: point in file system on Registered Server. e.g. F:\sync1 
+Cloud Endpoint: Azure File Share
+1. Storage Sync Service
+2. Windows server. disable Internet Explorer Enchnaced Security
+3. Install Azure File Syng Agent to Windows Server
+4. Register Windows Server to Storage Sync Service
+   -> automatically open during installation
+Cloud Tiering : cache    
+
+----
+#### Azure Blob Storage (=object storage)
+non-structured data
+Storage account/Container/Blob
+New-AzStorageContainer
+default: only owner can see container
+Access Tiers: hot/cold on account level
+hot/cool/archive on blob level (object level)
+Life Cycle: only for GPv2 and Blob Storage
+Move hot->cool|archive / Delete
+Replication: versioning must be on. hot or cool
+Replication only for hot and cool (no replication for archive)
+How to upload : '+Add' block/page/incremental
+block -> for all, page -> disk, incremental -> log
+azcopy, .NET library
+Data Factory (account key, SAS)
+blobfuse: virtual file system driver for linus
+Data Box Disk: SSD, Import/Export
+can change hot <-> cool any time
+
+----
+#### Self Service Password Reset (SSPR)
+Azure AD
+Secret quenstion can be used for SSPR (but not for MFA)
+use 2 or more authentication methods
+User seleect the ways to reset password
+use mobile app as primary -> e-mail -> office phone
+phone is second last option
+question is last option (should not use for admin account)
+user reset -> an alert sent to the user
+admin reset his password -> an alert sent to all admin group
+SSPR (pw forgot) only for Premium P1/P2 or Microsoft 365
+(what you need to test SSPR)
+- Azure AD license, Global Admin, plane user account
+- user account has to have AD license
+- security gropu (to test)
+[Disabled|Enabled|Selected]
+Enabled : all users, Selected: selected groups
+1. Portal -> Identity -> Active Directory -> Password reset
+2. Enable SSPR
+3. How many methods (1|2)? Which one (more than 2 when you pick '2')?
+4. User must register? How long a password valid (180days)?
+5. Notification
+6. Set Helpdesk URL
+----
+#### Azure RBAC
+Azure subscription can take only one Azure AD
+Azure AD Conenct (must be installed in on-premise)
+Who: Security principal: User + application
+What: Role Definition = permissions 
+Where: Scope: Management Group, Subs, RG, R (not tenant)
+Azure AD roles <-> Azure roles
+in the middle Global Admin/User Access Admin
+must elevate yourself
+Azure AD roles: Global Admin/App Admin/App Developer
+Azure roles: Owner/Contributer/Reader/User Access Admin
+Service Admin/Co-Admins/Account Admin
+e.g. Resource Group -> Access control (IAM)
+1. security principal [user|group|service]
+2. role definition [built-in|custom]
+   "Actions": ["*"\
+   "NotActions": ["Auth/*/Delete","Auth/*/Write",...]
+   read, write, delete...
+   Owner:full access, delegate access to others
+   Contributor: full without delegate access to others, without blueprint
+   Readers: viewer
+   User Access Admin: nothing, but can delgate access to others
+3. Scope [management group|subscription|RG|resource]
+4. Role Assignment: go RG -> IAM -> security principal + role
+Azure RBAC: additive, not multiplicative  
+----
 #### Azure Application Gateway
+a load balancer for web applications. URL base
+backedn: VM, VM scaleset, Azure App Service, on-premise
+behind a browser, simple round-robin (not load considered)
+application latyer (layer 7). hostname + path
+(Azure Load Balancer, layer 4, source IP address-base) 
+HTTP, HTTPS, HTTP/2, WebSocket
+- FireWall
+- SQL injection protection
+- Encryption
+- Autoscaling
+Routing to backend
+Path-base: contoso.com/images/*, contoso.com/video/*
+multiple sites: contoso.com, fabrikam.com
+register multiple DNS (CNAME) in App Gateway -> separate listners
+(multi-tenant applications)
+- Redirection to another site
+- Rewrite HTTP headers
+- Custom Error Pages
+1. Create Application Gateway
+   + One Frontend IP address (can be one public and one private)
+   + listner (protocol/port/host/IP). Basic (path), Multi-sate
+     - TLS/SSL termination
+   + routing rule: bind listner to backend, encript or not
+   + backend pool:VM, VMscaleset, Azure App Service, on-premise
+   + firewall: Open Web Application Security Project (OWASP)
+   + Health probe:HTTP only 200 and 399
+Web Application Firewall (WAF)
+   - SQL injection, Cross-site scripting, command injection
+   - HTTP requst smuggling, HTTP response splitting
+   - remote file inclusion
+   - Bots, crawlers, scanners, HTTP protocol violations, anomalies
+OWASP: Core Rule Set (CRS), WAF CRS 2.2.9/3.0
+   
+   
 
 
 ----
