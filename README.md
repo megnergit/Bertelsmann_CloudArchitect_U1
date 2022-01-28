@@ -89,6 +89,34 @@ software.
 # AZ-104
 ==========
 ----
+#### Move resources / Moving Resources / Azure Resource Mover
+- inter subscription / resource group / regions 
+
+
+
+----
+#### Azure SQL Database
+PaaS. Backup automatically
+SQL Server : IaaS
+
+
+----
+#### Network Watcher
+only for IaaS. not for PaaS like App Service
+IaaS: VM, VNet, Application Gateway, Load Balancer
+Endpoint can be, VM, FQDN, URI, IPv$ address
+connection monitor (on endpoint): reachability, latency, topology
+connection troubleshoot
+network perormance monitor: routing error, blakhole, threshold
+topology view
+IP flow verify: NSG check - source -> dest, port, protocol -> fail?
+next hop: check routing - source -> dest
+capture packets: filter,control -> Azure storage
+VPN diagnostics: on-premises -> Azure
+security group view
+
+
+----
 #### Sahred Access Signature
 - Public Access, aka anonymous public read access
   + AllowBlobPublicAccess
@@ -145,6 +173,9 @@ Blob Storage or Files
 5. On Azure Portal, create import job
    - destination Storage Account / region
 6. Send disks. update Job with tracking number
+Import: Blob/File
+Export: Blob only
+
 
 ----
 #### Azure Storage Explore
@@ -298,6 +329,7 @@ OWASP: Core Rule Set (CRS), WAF CRS 2.2.9/3.0
 ----
 #### Azure App Service Plan
 Server farm. Tied to a Region
+Web App and App Service Plan must be in a sam region
 - Region/number of VM/size of VM
 Free/Shared: not scale out. VM shared by other customer Apps. no SLA
 Basic: no scaling. Dev/Test
@@ -313,8 +345,6 @@ Autoscaling: VM instance-base. Scale-out (OR). Scale-in (AND)
 Metric/Schedule
 can scale in to zero.
 Alert -> e-mail, webhook
-
-
 
 ----
 #### Azure Load Balancer
@@ -346,6 +376,8 @@ Health Probe
 1. Create one.
    + HTTP poll every 15 sec, 'HTTP 200' withing 31 sec. backend URI
    + TCP: if connection is successful
+Basic: VMs in backpool must be in a scaleset or in a availability set
+Standard: single VMs can be added to backpool
 ----
 #### Private Endpoint -> Private Link
 PaaS
@@ -381,6 +413,9 @@ NVA are VMs
    are sent to 10.0.2.4 first.
 3. Associate Route Table
 - 'Add subnet. 10.0.1.0/24, Route Table Name
+IP Fowarding: to pass a packet to other IP
+(it does not stop there <=> black hole) 
+
 ----
 #### ExpressRoute
 collocation environment/center ~ community cloud
@@ -812,11 +847,18 @@ need StorageV2
 - no gateway (no cost for gateway)
 - traffic cost
 - when one connected, the other also connected
-
 HTTP = TCP at 80
 RDP  = TCP at 3389
+SMB  = TCP at 445 
+Gateway Transit: if other VNet has VPN Gateway, 
+can reach VNets connected that Gateway 
 
-## Virtual Network
+---
+#### Virtual Network
+NIC has to be in the same _Subscription_ and _Region_ with VNet 
+VM and VNet must be in a same region, 
+but can be in different resource group, 
+you cannot create VM without VNet
 IP address must be unique in a subscription
 Virtual Private Network (VPN)
 = one virtual network that consits of Azure + On-premise)
@@ -966,9 +1008,11 @@ await SendMessageAsync (can send while waiting)
 
 
 ---
+# Azure Policy, RBAC
 Scope
-Policy : MG/SUB/RG
-Role : Sub/RG/R
+Policy : MG/SUB/RG : multiplicable
+Role   : Sub/RG/R  : additive
+
 
 
 ---
@@ -996,7 +1040,60 @@ Azure SQL Database is a PaaS.
 
 ---
 END
-	<
+
+---
+####  Azure Kubernetes Service
+Node pool > Node > Deployment (YAML) > Pods > Container
+YAML: Manifest
+node : VM
+nodes in a Nodepool are all identical
+pods in a Deployments are all identical. manged by kubernetes
+AKS Cluster two types of nodes
+- Azure managed nodes : control plane. orchestration. (free) 
+- Customer managed nodes : run apps. agend nodes
+kubelet: receives orchestration requests
+kube-proxy : on each node. route network traffic
+container runtime : containerd. to talk to storage and network
+nodes -> virtual network (kube-proxy takes care)
+Services: groups pod. provide network connectivity to pods
+- Cluster IP: internal IP inside AKS cluster. internal only
+- NodePort: can access nodes directly from outside
+- LoadBalancer: over pods
+- ExternalName: DNS entry  
+Persistent storage 
+Volumes : a pod. gone with a pod
+- Azure Disks (managed. Kubernetes Data Disk),
+  Azure Premium Storage. mounted as ReadWriteOnce. 
+  Single node
+- Azure Files, accesed by multiple nodes, SMB
+Persistent volumes : StatefulSets. managed by Kubernetes API
+  PersistentVolume. created by cluster admin
+- Azure Disk
+- Azure Files 
+Storage clases
+- default/managed-preimum/azurefile/azurefile-premium
+Scale out
+- pods (replica)
+- nodes (node count)
+Network 
+Kubenet: pods get their own IPs. No talking each other
+nodes are on internal VNet subnet. pods are not on it.
+CNI: pods are on the Vnet subnet
+User need to update Kubernetes 
+
+---
+####  Azure Container Instances
+Containers in Containers group ~ Containers Kubernetes pods 
+typical contianer group
+on a  single host machine
+has a DNS name albel 
+has a public IP address/Port
+has two containers, one (port 80) and other (1433, MS SQL Server)
+has two Azure File Shares as volume mounts (one for each container)
+Ddeployment 
+1. ARM template (recommended)
+2. YAML 
+
 
 ---
 #### Storage for Virtual Machine
