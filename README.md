@@ -89,11 +89,58 @@ software.
 # AZ-104
 ==========
 ----
-#### Move resources / Moving Resources / Azure Resource Mover
-- inter subscription / resource group / regions 
+#### Azure Private Link Service
+need a standard Load Balancer
+PaaS Services behind Load balancer
+attached to the frontend IP of the Load Balancer
+Create a Private Endpoint in your VNet
+cross-regional
+Fix PaaS service to the endpoint
+you can use the service without going to internet
+Private Eddpoint: private IP, Microsoft private Backbone
+Service Endpoint: publicly routable IP
+Private Link Services : PaaS Service
+Prinvate Endpoint : to access to Privaet Link Service
+1. create Private Link
+2. create Private Endpoint 
 
 
+----
+#### Azure Administrative Unit
+(Scenario)
+- create Administrative Unit for School of Business
+- put students and staff of SoB to the Administrative Unit
+- create roles of administrator over Azure AD for SoB
+- AAU cannot be nested
+Azure AD P1/P2 license for AAU administrators
+Azure Free for AAU members
+assing administrator roles under each AAU
+User/Authentication/Help Desk  Administrator
 
+----
+#### Move / Moving Resources / Azure Resource Mover
+1. inter subscription
+(VM) we cannot move VMs when
+- in backend pool of Load balancer
+- not when all resources in the VNet are moved together
+- Marketplace plan was installed
+- in an Availability set
+first disable disk encryption
+az vm encryption disable
+first stop backup
+Resources do not acctually move. Just affiliation changes,
+(only metadata changes)
+subscriptions must be in the same tenant
+need to apply role again
+move VM with managed disks
+App Service cannot move when,
+there are App Service in target resource group (web app, etc.)
+VPN Gateway linked to a public IP cannot be moved
+NIC can only move when all dependencies (VM, VNet) come together
+Network can move without interruption
+Network cannot move when, 
+2. resource group
+3. regions 
 ----
 #### Azure SQL Database
 PaaS. Backup automatically
@@ -102,6 +149,7 @@ SQL Server : IaaS
 
 ----
 #### Network Watcher
+extension of VM
 only for IaaS. not for PaaS like App Service
 IaaS: VM, VNet, Application Gateway, Load Balancer
 Endpoint can be, VM, FQDN, URI, IPv$ address
@@ -717,7 +765,9 @@ az container logs
 az container attach
 az container exec
 az monitor metrics list --resource CONTAINER_ID --metrics CPUUsage
-
+init Container: works at the begining, 
+set account, run script, configure database, etc. 
+same hardware with other workload containers
 
 ---
 #### Moving Resources
@@ -1076,23 +1126,26 @@ Scale out
 - pods (replica)
 - nodes (node count)
 Network 
-Kubenet: pods get their own IPs. No talking each other
+Kubenet: pods get their own IPs (to save IPs in VNet subnet),
+No talking each other,
 nodes are on internal VNet subnet. pods are not on it.
 CNI: pods are on the Vnet subnet
 User need to update Kubernetes 
 
 ---
-####  Azure Container Instances
+####  Container Group of Azure Container Instances
 Containers in Containers group ~ Containers Kubernetes pods 
-typical contianer group
+Linux Only
+(typical container group)
 on a  single host machine
-has a DNS name albel 
+has a DNS name label 
 has a public IP address/Port
 has two containers, one (port 80) and other (1433, MS SQL Server)
 has two Azure File Shares as volume mounts (one for each container)
-Ddeployment 
+Dedployment 
 1. ARM template (recommended)
 2. YAML 
+
 
 
 ---
