@@ -89,6 +89,100 @@ software.
 # AZ-104
 ==========
 ----
+#### Azure Load Balancer
+five tuple hash: IPx2/Portx2/protocol
+Load balcenr is a software.
+availalbility sets 99.95%
+availability zones 99.99$
+Basic: backpool must be in scaleset/availability set
+ - port forwarding, Health probes, SNAT, Log Analytics
+Standard: can add singel VM to backend pool. availabitility zones
+ - Hight availability (HA) ports, HTTPS health probe
+ - Azure Monitor, metrics, outbound rules
+ - SLA 99.99%
+ Source IP affinity (=session affinity = client IP affinity)
+ 2 tuple (source IP/ destination IP) =Session Persistence
+ 3 tuple (source IP/ destination IP/protocol)
+Remote Desktop Gateway - Windows service, 
+allow user RDP through FireWall -> use Source IP or -> INAT
+meida upload -> use Source IP affinity
+Internal Load Balancer
+- internal => do not need to give front-end IP
+- private IP address
+- in the same VNet
+
+
+----
+#### Routing/Route/Router, Network Virtual Appliance, NVA
+VNet, Subnet, on-premises => System Route (automatic)
+System Route cannot be deleted,
+but User Defined Route can override System Route
+User Defined Route (= Custom Route) (= Next Hop)
+System Route,
+                            Next Hop      
+VNet Address Prefix (mask)  VNet
+0.0.0.0/0                   Internet
+10.0.0.0/8                  None  
+172.16.0.0/12               None  
+192.168.0.0/16              None  
+100.64.0.0/10               None  
+choice fo Next Hop: VNet, Internet, or None
+None: stays inside VNet. cannot be globally routable
+other system routes: VNet peering, VNet Gateway, Vnet Service Point,
+Service Chaining
+Virtual Network Gateway contains Routing Tables
+(how to make custom routes) USR or BGP
+Route table is attached to a Subnet
+NVA: firewall, router, load balancer. Software.
+can get from MarketPlace
+microsegmentation approach
+firewall layer 4
+application gateway layer 7
+A routing tables can be attached to many subnets.
+A subnet can have one routing table
+NVA must be HA. 
+
+----
+#### Azure DNS
+DNS Zone: 'zone' part of database. a text file
+(public DNS)
+1. create DNS zone
+   - subscription, resource group, location, domain name
+2. obtain Azure DNS Name Server
+   - ns1-07.azure-dns.com, .net, .org, .info
+3. update domain registeror. 'delegation'
+4. nslookup -type-SOA wideworldimports.com
+5. write DNS record
+   A, CNAME
+(private DNS)
+1. Create DNS zone (= a database)
+2. identify VNet
+3. link VNet to DNS zone
+   + enable automatic registration
+apex domain: 'egner.com' in 'www.egner.com'
+alias record : traffic manager, azure SDN, public IP, front door
+A, AAAA, CNAME
+link apex domain to load balancer (= Traffic Manager)
+
+
+----
+#### IP Address
+public IP: load balancer, VPN Gateways, Application gateway
+Basic:static/dynamic. inbound only. no routing. no Availability Zones
+Standrad:static. zone-redundant. routing
+Public IP Address Prefix: reserved, static, public IP Addresses
+lots of them. unique for each region.
+specify Name and Size (cannot choose actual addresses).
+Azure chose contiguous range of addresses for you
+Pulbic IP addresses are _region specific_
+private IP addresses ranges
+10.0.0.0/8
+172.16.0.0/12
+192.168.0.0/16
+by Internet Assigned Numbers Authority (IANA)
+*.0, *.256: subnet *.1, *.2, *.3: internal 
+
+----
 #### Azure Private Link Service
 need a standard Load Balancer
 PaaS Services behind Load balancer
@@ -141,6 +235,8 @@ Network can move without interruption
 Network cannot move when, 
 2. resource group
 3. regions 
+Pulbic IP addresses are _region specific_
+
 ----
 #### Azure SQL Database
 PaaS. Backup automatically
@@ -424,7 +520,7 @@ Health Probe
 1. Create one.
    + HTTP poll every 15 sec, 'HTTP 200' withing 31 sec. backend URI
    + TCP: if connection is successful
-Basic: VMs in backpool must be in a scaleset or in a availability set
+Basic: VMs in backend pool must be in scaleset/availability set
 Standard: single VMs can be added to backpool
 ----
 #### Private Endpoint -> Private Link
@@ -532,17 +628,27 @@ active-standby 10-15s, 60-90s
 
 ----
 #### VNet Peering
-- Region VNet Peering
+- Regional/Virtual VNet Peering
 - Global VNet Peering (but not from Azure Goverment)
 For Azure Goverment, regional peering only
 - Microsoft Backbone Network. No encryption. No Gateway
 - No downtime
-one Gateway for one VNet
-Allow Gateway Transit
-nontransitive
+one Gateway for one VNet 
+Gateway Transit : VNet -> on-premises (not VNet-VNet)
+set "Allow Gateway Transit" at Hub VNet
+set "Use remote Gateways" at Spoke VNets
+-> can have no Gateway for itself any more 
+Peering is nontransitive
 User Defined Route : eneable next hop (IP address)
 Service Chaining
 Status : Initiated Connected
+Use only Microsot Backbone. Private IP addressesu
+Network Contributor
+no overlap in address space
+x 10.0.0.0/16 - 10.0.0.0/17
+x 10.0.0.0/16 - 171.16.0.0/16
+When there are two connections, peering and VPN Gateway,
+traffict flows through Peering.
 
 ----
 #### ARM Tempalte
@@ -1128,7 +1234,7 @@ Scale out
 Network 
 Kubenet: pods get their own IPs (to save IPs in VNet subnet),
 No talking each other,
-nodes are on internal VNet subnet. pods are not on it.
+nodes are on internal VNet subnet. pods are not on VNet.
 CNI: pods are on the Vnet subnet
 User need to update Kubernetes 
 
