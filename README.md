@@ -1,72 +1,33 @@
-# Bertelsmann_CloudArchitect_U1
-
+# BeStorage Exportelsmann_CloudArchitect_U1
 A study note for the Bartelsmann scholarship for Cloud Architect in Udacity NanoDegree.
-
 ---
-## What is DSC? ('Desired State Configuration)
+#### Desired State Configuration
+DSC is part of configuration management
+keep software installed in a VM constant.
+if someone deletes a software, re-install it.
+if someone install a software, delete it
+DSC is a function of PowerShell,
+typically executed from PowerShell.
+Script (='iis.ps1' with 'Configuration ....) is a PowerShell
 
-I did not understand the purpose of Lesson 5-9 to 5-12 on 'Desired
-State Configuration', DSC. I went through documents, and here is where
-I ended up, what is DSC. I still do not fully understand DSC, and I
-filled those gaps with my imagination. I marked such uncertain parts
-with "(*)". So, please be cautious. I wrote the note by taking a VM as
-a representative Azure-resource, so that I could have a concrete
-idea. In reality it could be other resources, like storage or network.
-
-The purpose of Desired State Configuration is the Configuration
-Management. Configuration management originally comes from the
-hardware development -- a development of a large, complicated
-hardware, like an airplane. The goal of a configuration management is
-to make a full list (=record) of all the parts that are used in the
-airplane at each moment/phase of the development. With these lists (we
-have many lists as a function of time), engineers can understand what
-to buy, when some parts are broken. They can also tell what their
-airplane can do, and cannot do, from the list.
-
-In the case of Azure, the configuration management is 'Software
-Configuration Management'. Similar to a hardware configuration
-management, engineers have to understand what their system (computer)
-is made of. In order to understand what their system can do, the
-engineers need to know what applications, library, python versions,
-etc. are installed in their machine.
-
-However, there are so many applications and libraries in a computer,
-with entangled dependencies. It is almost impossible to keep the
-software inventory manually by human. Therefore software configuration
-management is usually automated. DSC is used for that purpose. DSC
-installs a software again when it is accidentally removed. DSC deletes
-a software when it is accidentally installed. I believe DSC can
-update/retain a software to a specific version (*). DSC is in a sense
-similar to git that enables the source code evolution, but prevents
-bugs get into codes. In the case of DSC, it is not source codes, but a
-suite of software installed in a computer.
-
-DSC is a function of PowerShell, and is typically executed from
-PowerShell (*). The script we used (='iis.ps1' with 'Configuration
-....) was a PowerShell script.
-
+need   Azure Automation. Azure
 In order to automatically install/uninstall a software in a computer
-without human intervention, DSC requires Azure Automation. Azure
-Automation has a function, for instance, to start and stop a VM
-automatically (at a certain time, or with a certain trigger). This is
-a separate service from Azure Portal. One can automate start/stop
-computers on Azure, as well as on-premise (*) by running command from
-your local (=your laptop) PowerShell (*). This is why we need to
-create Automation Account, separately from MicroSoft account that we
-use to log-in Azure Portal.
+Azure Automation: start and stop a VM automatically
+(at a certain time, or with a certain trigger).
+automate start/stop computers on Azure and on-premise,
+by running command from your local (=your laptop) PowerShell.
+need Automation Account,
+separately from MicroSoft account to log in Azure Portal.
 
-### Glossary
+##### Glossary
+*WMF* 'Windows Management Framework'. contains *WinRM* + *PowerShell*.
 
-*WMF* means 'Windows Management Framework', and is a software package
-that contains *WinRM* and *PowerShell*. WinRM means Windows Remote
-Management, and is a Web Service Management of the Microsoft version
-(*). *Web Service Management* is a type of protocol (=a bundle of
-rules, like HTTP, SSH, etc.) to communicate to web servers/services
-(*). Therefore we need WMF, more specifically, WinRM and PowerShell
-inside WMF
+*WinRM*  Windows Remote Management.
+Web Service Management tool by Microsoft
+*Web Service Management* a protocol for  web servers/services
+DSC needs WMF, because it needs WinRM and PowerShell inside WMF.
 
 The differences among similar-looking services:
-
 *Azure Policy* : it sets individual restriction when we create a VM
 (location, size, ...). The restrictions are mostly on hardware (*).
 
@@ -88,6 +49,254 @@ software.
 ==========
 # AZ-104
 ==========
+
+---
+#### Recovery Vault vs Backup Vault
+RV: VM, SQL in VM, Azure Files/Storage, HANA,
+BV: SQL Dataabase, Blobs, Disks
+Backup:
+Install Azure Backup Agent 
+File recovery from Backup
+File Level: any internet machine. Linux->Windows also possible
+ - pick recovery point
+ - download script for recover file.
+ - run
+Snapshopt recovery
+ -
+Azure Site Recovery
+ - create replication (not a backup)
+ - not whole VM, but disk only
+VM recovery: need to install rescovery agent to target VM
+
+
+
+---
+#### Azure Access Review
+
+
+---
+#### Azure Storage Explorer
+credential: SAS, connection string, or account key
+azcopy: Blob storage (SAS/key/AD), File (SAS)
+
+---
+#### Azure Active Directory (Azure AD)
+Security Principal : an 'object' (user, group, service) to which
+                     a role is given. 
+Multi Factor Authentication
+cloud app. like Microsoft 365u
+user actions:
+Autehntication context
+creating tenant -> Azure AD requests you to create DNS
+-> use TXT or MX
+(in case of creating DNS zones in other purpose, A or CNAME)
+(=Host name record). DNS zone = dataabse
+for users synced by Azure AD Connect:
+cannot change job info (title/department/admin/company/ID),
+but can change address (location)
+(device)
+Azure AD registration: various device, pc, mobile phones
+Azure AD join: Windows 10 only
+Hybrid Azure AD join: Windows 7+
+Local Admin Group: when Window 10 'joined' Azure AD,
+ - not only the owner of the PC, but also Azure AD users can log in.
+ - The user who joined the pc + Global Admin Group (automatic)
+Azure AD -> device -> configure device -> local admin group
+can add a device to a group
+Condional Auccess
+1. User and Group
+2. Cloud app (like Microsoft 365 or Azure Portal)
+3. Condition (type of device, location)
+4. Grant (allow (or reroute to MFA) or deny (=block))
+5. Session (App specific setting e.g. Exchagne Online)
+User Admin: only exist for Azure AD (not Azure RBAC) 
+Service Admin: RBAC, classic. subscription level
+(how to apply Service Admin)
+Go Subscription -> Property -> SERVICE ADMIN
+Scope: tenant/administrative unit/specific application
+Global Administrator (AD) -> elevate -> User Access Admin (RBAC)gg
+
+
+----
+#### Azure CLI
+az vm restart -g RG -n VM1
+Azure Cloud Shell <- Azure Portal |_>
+- Linux: apt-get(Ubuntu), yum(Redhat), zypper(SUSE)
+- Mac: brew
+CLI: variable=variable
+PowerShell: $variable=variable
+brew update
+brew install azure-cli
+az (group) (subgroup)
+az storage (account|blob|queue)
+to find command : az find blob (AI robot)
+az find "az vm"
+az find "az vm create"
+az storage blob --help
+az storage blob -h
+az login => sign-in page => to connect to a subscription 
+az group create -n NAME --location LOCATION (to put metadata)
+"Wset US" "West Europe" "westus" "westeurope"
+az group list -o table
+--generate-ssh-keys
+for linux distributions. Now you have,
+'id_rsa' and 'id_rsa.pub' in your ~/.ssh directory
+20 vCPU pay-as-you-go, 4 vCPU for free tier
+on request up to 10000 vCPU
+--no-wait
+
+----
+#### Windows Virtual Machine
+created together with VM
+- Storage Account, OS system disk, Data disk, Temp. disk,
+- VNet, NIC, public IP
+quota: 20 VM cores pro subscription pro region.
+B,D: small-to-medium web-service/database
+F: medium web-service, batch process
+E,G,M:memory-intensive, analytics
+Ls: Big Data, SQL, NoSQL, fast disk IO
+N:GPU
+H:HPC
+Managed Disk: storage account managed. can scale out, 
+RBAC access, snapshot (VM must be shutdown once), backup
+
+
+
+----
+#### Azure Automation State Configuration
+Desired State Configuration, Azure Automation
+prevent 'drift'
+'onboard' VMs for management by Azure Automation
+has built-in pull server
+PowerShell DSC: simply a PowerShell script
+declarative: a recipe. other cooks accordingly
+New-SmbShare -Name MyFileShare -Path C:\Shared \
+             -FullAccess User1 -ReadAccess User2
+idempotent: need conditional execusion => DSC
+DSC is automatically idempotent
+LCM: local configuration manager
+push: LCM server -> VM
+pull: VM -> LCM server -> VM : large enterprise
+DSC: Windows, Linux (not Debian, not Ubuntu 18.04)
+Windows Machine needs WMF (Windows Management Framework)
+and WinRM (Windows Remote Mangement) installed
+port TCP 443, global URL, Agent service
+PowerShell PSC: WindowsFeature: adds role (server) to a node
+Configuration, Node, Resource, call
+Node: *.mof: 'localhost' => localhost.mof
+MyDscConfiguration -OutputPath C:\temp\ (execute function)
+array: @(A,B,C)
+credential-> PSCredential
+push mode: Start-DscConfiguration -path D:\
+pull mode: install DSC VM Extension, install WMF
+Local Configuration Manager applies desired state
+1. poll 2. Download 3. Compare 4. Update
+Puppet Agent: configuration management tool from Puppet. Open.
+
+----
+#### Network Watcher
+an extension of VM, Regional, to be in same region with VNet
+only for IaaS. not for PaaS like App Service
+IaaS: VM, VNet, Application Gateway, Load Balancer
+Endpoint can be, VM, FQDN, URI, IPv$ address
+- connection monitor (on endpoint): reachability, latency, topology
+- connection troubleshoot : network _performance_
+network perormance monitor: routing error, blakhole, threshold
+1. Network Topology view
+   - Network Watcher must be in same region with VNet
+2. IP flow verify: only _NSG_ check, internet / on-premises
+   - source -> dest, port, protocol -> [fail/success] + why
+   - if no problem, then check firewall
+3. Next hop: check routing - source -> dest
+   - VM/NIC/IP -> Dest
+   -> Next Hop type [None|Internet|NVA|Gateway|Vnet|Peering]
+      + Route Table
+4. Packet Capture: filter,control -> Azure storage
+   - alert
+5. NSG Flow logs: => presented by Traffic Analytis
+   1. enable Network Watcher in region level
+   2. register Microsoft.Insights in subscription level
+   3. Create Storage Account
+   4. Create NSG Flow Log, choose NSG
+   + into and ouf of a VM
+   - flow log is a JSON file
+
+VPN diagnostics: on-premises -> Azure
+security group view
+Monitoring, Diagnosstic, Metric, Logs
+(Watch communication between 2 VMs)
+1. Extention -> Enable Net Watcher (on both VMs)
+2. Create connection monitor
+3. View connection monitor (diagram of latency)
+   = round trip
+4. Generate Alerts   
+
+
+----
+#### Log Anlytics
+Azure Monitor -> Logs
+create workspace
+connected source: computers. Agents installed in Windows, Linux, storage
+System Center Operation Management Gropu (to be installed on-premises)
+Data Source: log(=events), performance(=metric), syslog, custom
+(Query)
+Heartbeat
+| summarise dcout(computerIP) by bin(timeGenerated, 1h)
+| render timechart
+Table: Event, Syslog, Heartbeat, Alert
+Event
+| where (EventLevelName == "Error")
+| where (TimeGenerate &gt; ago(1days))
+| summarize ErrorCount = count() by Computer
+| top 10 by ErrorCount desc
+StormEvents | count
+T | limit 5
+T | summarize count(), avg(price) by fruit, supplier
+T | top 5 by Name desc nulls last
+T | where fruit=="appl"
+
+----
+#### Azure Monitor
+metrics/logs/alert+action
+app/guest os/resource/subscription/tenant
+activity log: 90 days
+action group: e-mail. 
+runbook/playbook/workbook
+Alert Rule: Scope (=resource), Condition, Action
+Action Group: notification + Action
+----
+#### Azure Backup Center
+work across service/vaults/subscriptions/regions/tenants
+policy/workbook/monitor logs
+Recovery Service Vault: can backup FileShare (probably not Blob) **
+On-premises _Windows_ VM: install Azure Backup Agent (=MARS)
+get Vault credential file
+backup policy: when/what/how long/network throttling
+MARS: volume level backup
+Azure Backup does not charge amount of data/traffic
+(Backup of Virtual Machines) 1. RSV 2. backup policy 3. go
+Recovery Service Vault/Azure Backup/Azure Site Recovery
+snapshots
+MARS (Microsoft Azure Recovery Service) Agent 
+MABS (Azure Backup Server)
+Backu options
+1. Snapshots in Managed Disk: quidk, simple, read-only
+   images: VM stopped. All disks attached to VM
+   snapshot: one disk.
+2. Azure Backup: Linux, Windows, in geo-redundant vaults, VM or file
+3. Azure Site REcovery: restore VMs in other regions 
+(Snapshot)
+1. Snapshot is created (retains 2 days by default) 
+2. Snapshot is sent to Recovery Service Vault
+Recovery Service Vault must in in the same region with VM,
+but need to be replicated (geo or LRS) (geo default)
+Azure VMs have backup agents already
+(Restore VM)
+1. 'Restore VM'
+DPM: Data Protection Manager
+Soft delete of backup data
+it is not really deteleted, but kept 14 days
+
 ----
 #### Azure Load Balancer
 five tuple hash: IPx2/Portx2/protocol
@@ -96,11 +305,18 @@ availalbility sets 99.95%
 availability zones 99.99$
 Basic: backpool must be in scaleset/availability set
  - port forwarding, Health probes, SNAT, Log Analytics
+ - cannot be internal LB
 Standard: can add singel VM to backend pool. availabitility zones
- - Hight availability (HA) ports, HTTPS health probe
+ - High availability (HA) ports, HTTPS health probe
+   + for internal Standard LB only
+   + decision is made per flow, not per hash
+   + no ports, no protocols to choose
  - Azure Monitor, metrics, outbound rules
  - SLA 99.99%
- Source IP affinity (=session affinity = client IP affinity)
+ - can be internal
+ - can be Availability Zones
+ - as default, only open to VNet. need NSG to open to Internet
+Source IP affinity (=session affinity = client IP affinity)
  2 tuple (source IP/ destination IP) =Session Persistence
  3 tuple (source IP/ destination IP/protocol)
 Remote Desktop Gateway - Windows service, 
@@ -110,7 +326,17 @@ Internal Load Balancer
 - internal => do not need to give front-end IP
 - private IP address
 - in the same VNet
-
+backend must be in one subnet
+public IPs of backend pool are better be stripped off
+public IPs (Basic SKU) of VMs are dynamic,
+not compatible with LB
+Adding VMs to backend pool: 
+- adding pool: Network Contributer on resource group
+- put VM in pool: Virtual Network Reader 
+- put VM in pool: Virtual Machine Reader
+=> Network Contributer on RG
+Adding Healthprobe to Loadbalancer:
+=> Network Contributer on RG
 
 ----
 #### Routing/Route/Router, Network Virtual Appliance, NVA
@@ -141,6 +367,8 @@ application gateway layer 7
 A routing tables can be attached to many subnets.
 A subnet can have one routing table
 NVA must be HA. 
+If you have 'None' in UDR, it would not be re-routed to System Rout
+
 
 ----
 #### Azure DNS
@@ -150,7 +378,7 @@ DNS Zone: 'zone' part of database. a text file
    - subscription, resource group, location, domain name
 2. obtain Azure DNS Name Server
    - ns1-07.azure-dns.com, .net, .org, .info
-3. update domain registeror. 'delegation'
+3. update domain registrar. 'delegation'
 4. nslookup -type-SOA wideworldimports.com
 5. write DNS record
    A, CNAME
@@ -160,10 +388,15 @@ DNS Zone: 'zone' part of database. a text file
 3. link VNet to DNS zone
    + enable automatic registration
 apex domain: 'egner.com' in 'www.egner.com'
-alias record : traffic manager, azure SDN, public IP, front door
+alias record: traffic manager, azure SDN, public IP, front door
 A, AAAA, CNAME
 link apex domain to load balancer (= Traffic Manager)
-
+initial domain name: <>.onmicrosoft.com (cannot delete),
+but add another. => alain@contoso.com
+1. add new comain name (without removing initial domain name)
+   - creaet new TXT record => verify domain
+2. go to registrar and add Azure AD DNS. Create a new TXT record   
+  (one has to do this at regitrar's web site/tool)
 
 ----
 #### IP Address
@@ -184,6 +417,9 @@ by Internet Assigned Numbers Authority (IANA)
 
 ----
 #### Azure Private Link Service
+Private endpoind = a special NIC for a VNet
+Prinvate link = link between service and endpoint
+need a DNS to direct traffic from VNet to P-endpoint.
 need a standard Load Balancer
 PaaS Services behind Load balancer
 attached to the frontend IP of the Load Balancer
@@ -192,12 +428,37 @@ cross-regional
 Fix PaaS service to the endpoint
 you can use the service without going to internet
 Private Eddpoint: private IP, Microsoft private Backbone
-Service Endpoint: publicly routable IP
+Service Endpoint: publicly routable IP,
+not recommended if target service is already on Azure, 
+better use private link
 Private Link Services : PaaS Service
-Prinvate Endpoint : to access to Privaet Link Service
+Prinvate Endpoint: to access to Privaet Link Service
 1. create Private Link
 2. create Private Endpoint 
+Service endpoint is attached to a subnet
+Create subnet => "SERVICE ENDPOINT" 
+create NSG on a subnet.
+source: VNet, port:*, Dest. service tag,
+Dest port:445, Prptocol: Any, Action: allow, priority:100
+Service endpoint: per service, per subnet.
+close all outbout traffic except 445 and to Storage
+open 3389
++ Associate -> Vnet
+Storage => Security + networkign => Access Keys => (store)
+(connect to storeage via service endpoint)
+$acctKey = ConvertTo-SecureString
+           -String "<storage-account-key>"
+	   -AsPlainText -Force
+$credential = New-Object System.Management.Automation.PSCredential
+              -ArgumentList "Azure\<storage-account-name>", $acctKey
 
+New-PSDrive -Name Z -PSProvider FileSystem
+            -Root "\\<storage-account-name>.file.core.windows.net\my-file-share"
+	    -Credential $credential
+Private Endpoint: per resource (Storage account of a user)
+'private' means private IP only.
+Service Endpoint: per service (all Storage account of users)
+Service Endpoint: target IP (=IP of service) are public
 
 ----
 #### Azure Administrative Unit
@@ -215,10 +476,10 @@ User/Authentication/Help Desk  Administrator
 #### Move / Moving Resources / Azure Resource Mover
 1. inter subscription
 (VM) we cannot move VMs when
-- in backend pool of Load balancer
-- not when all resources in the VNet are moved together
-- Marketplace plan was installed
-- in an Availability set
+ - in backend pool of Load balancer
+ - not when all resources in the VNet are moved together
+ - Marketplace plan was installed
+ - in an Availability set
 first disable disk encryption
 az vm encryption disable
 first stop backup
@@ -226,38 +487,41 @@ Resources do not acctually move. Just affiliation changes,
 (only metadata changes)
 subscriptions must be in the same tenant
 need to apply role again
+Move-AzResource -DestinationSubscriptionID XX
+                -DestinationResourceGroupName xx
+		-ResourceID XX 
 move VM with managed disks
 App Service cannot move when,
-there are App Service in target resource group (web app, etc.)
+there are App Service in target resource group (web app, etc.) **
 VPN Gateway linked to a public IP cannot be moved
 NIC can only move when all dependencies (VM, VNet) come together
 Network can move without interruption
 Network cannot move when, 
 2. resource group
 3. regions 
-Pulbic IP addresses are _region specific_
+Network Interface can be created where VNet is
+(same subscription, same region)
+Pulbic IP addresses are _region specific_, cannot move.
+(Public IPs are taken from regional reserve)
+Policies: MG/Sub/RG/R
+Locks: Sub/RG/Resource: when on RG, cannot scale App
+
+Tags:  Sub/RG/Resource
+Read-Only RG: can add from outside. 
+
+----
+#### Proximity Placement Groups
+an Availability zone can span two data centers
+PPG in one data center
+applied to availability set / VMSS
+stop VM before adding to PPG
+
 
 ----
 #### Azure SQL Database
 PaaS. Backup automatically
 SQL Server : IaaS
 
-
-----
-#### Network Watcher
-extension of VM
-only for IaaS. not for PaaS like App Service
-IaaS: VM, VNet, Application Gateway, Load Balancer
-Endpoint can be, VM, FQDN, URI, IPv$ address
-connection monitor (on endpoint): reachability, latency, topology
-connection troubleshoot
-network perormance monitor: routing error, blakhole, threshold
-topology view
-IP flow verify: NSG check - source -> dest, port, protocol -> fail?
-next hop: check routing - source -> dest
-capture packets: filter,control -> Azure storage
-VPN diagnostics: on-premises -> Azure
-security group view
 
 
 ----
@@ -361,6 +625,19 @@ Cloud Endpoint: Azure File Share
 4. Register Windows Server to Storage Sync Service
    -> automatically open during installation
 Cloud Tiering : cache    
+(Server Endpoint)
+- Changing the path or drive letter after you established a server
+  endpoint on a vo lume is not supported. Make sure you are using a
+  suitable path before creating the server endpoint.
+
+- A registered server can support multiple server endpoints, however,
+  a sync group can only have one server endpoint per registered server
+  at any given time. Other server endpoints within the sync group must
+  be on different registered servers.
+
+- Multiple server endpoints can exist on the same volume if their
+  namespaces are not overlapping (for example, F:\sync1 and F:\sync2)
+  and each endpoint is syncing to a unique sync group.
 
 ----
 #### Azure Blob Storage (=object storage)
@@ -657,31 +934,6 @@ $context = Get-AzSubscription -SubscriptionId {Your subscription ID}
 Set-AzContext $context
 Set-AzDefault -ResourceGroupName learn-09e42320-c4cd-434a-87a2-dcfa7246a4f2
 
-
-----
-#### Azure CLI
-az vm restart -g RG -n VM1
-Azure Cloud Shell <- Azure Portal |_>
-- Linux: apt-get(Ubuntu), yum(Redhat), zypper(SUSE)
-- Mac: brew
-CLI: variable=variable
-PowerShell: $variable=variable
-brew update
-brew install azure-cli
-az (group) (subgroup)
-az storage (account|blob|queue)
-to find command : az find blob (AI robot)
-az find "az vm"
-az find "az vm create"
-az storage blob --help
-az storage blob -h
-az login => sign-in page => to connect to a subscription 
-az group create -n NAME --location LOCATION (to put metadata)
-"Wset US" "West Europe" "westus" "westeurope"
-az group list -o table
-
-
-
 ----
 #### Virtual Machine Extention
 - Extensions
@@ -749,6 +1001,11 @@ Linux VM : SSH = encripted
 public Key => VM
 private Key => your laptop
 SSH-RSA 2048bit
+when you create a VM, automatically created
+NIC+NSG/VNet/Subnet/Disks
+defaul NSG 1000 RDP TCP 3389 Allow for inbound? 
+Virtual machine Scale Set:built-in update domate, 
+20% of machines updated at once.
 
 ==========
 # 30 days
@@ -852,7 +1109,7 @@ az acr task create
 #### Azure Container Instances
 Persistent Storage : need Azure Files Share 
 az container create -g RG -n mycontainer --image mcr.microsoft.com/
-DNS name label : can create new, but must be unique $RANDOM
+DNS name label: can create new, but must be unique $RANDOM
 az container show --query "{FQDN:ipAddress.fqdn}"
 az container show --query "{ProvisioningState:provisioningState}"
 http://aci-demo-24331.eastuslazurecontainer.io
@@ -995,8 +1252,11 @@ GRS: GR + LRS
 RAGRS: GRS (one is read only. more expensive than GRS)
 GZRS: GR + ZRS
 need StorageV2
-
-
+ZRS: can read and write at zonal shutdown
+GRS: cannot read at zonal shutdown. 
+RAGRS: can read at zonal shutdown. 
+BlobStorage: does not have ZRS
+price: Gp2 and Blob same price
 ---
 #### VNet Peering
 - global, over subscritpions, over regions.
@@ -1019,7 +1279,6 @@ IP address must be unique in a subscription
 Virtual Private Network (VPN)
 = one virtual network that consits of Azure + On-premise)
 IP address must be unique inside a VPN)
-
 (scenario)
 ExpressRoute: No site-to-site. No encription. p2p. a2a. CloudExchange
 
@@ -1044,8 +1303,6 @@ pvivate ID : to comunicate to other (Azure) resources in teh VNet
 public ID: to communicate to internet
            - not change, if dynamic, and rebooted or stopped
            - change, if dynamic, and deallocate
-
-
 need static public ID
 - static IP in DNS name resolution
 - static IP in security restriction
@@ -1068,6 +1325,11 @@ use inside VNet
 
 service tag: change name to range of IP addresses
 VirtualNetwork/Internet/SQL/Storage/AzureLoadBalancer/AzureTrafficManager
+
+When you create a NSG and attached to a subnet, 
+it can control traffic inside a subnet, 
+resource-to-resource.
+
 
 ---
 Azure Monitor : Performance
@@ -1164,17 +1426,18 @@ await SendMessageAsync (can send while waiting)
 
 
 ---
-# Azure Policy, RBAC
+#### Azure Policy, RBAC
 Scope
 Policy : MG/SUB/RG : multiplicable
 Role   : Sub/RG/R  : additive
+even if policy prohibits, one can 'move' banned resource 
+to an RG
+when no-allowed: VNet
+- cannot add address space
+- but can move an existing VNet from other RG
 
 
 
----
-Azure Active Directory (Azure AD)
-Security Principal : an 'object' (user, group, service) to which
-                     a role is given. 
 
 ---
 Storage Account
@@ -1323,10 +1586,6 @@ expand particition 'diskpart' / parted / resize2fs
 az disk list \
   --query '[*].{Name:name,Gb:diskSizeGb,Tier:sku.tier}' \
   --output table
-
-
-
-
 ---
 
 az configure --defaults location=eastus
