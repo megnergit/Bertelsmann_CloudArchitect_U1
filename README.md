@@ -1,6 +1,6 @@
-# BeStorage Exportelsmann_CloudArchitect_U1
-A study note for the Bartelsmann scholarship for Cloud Architect in Udacity NanoDegree.
----
+==========
+# AZ-104
+==========
 #### Desired State Configuration
 DSC is part of configuration management
 keep software installed in a VM constant.
@@ -44,11 +44,7 @@ software) when unwanted changes are made in the combination of the
 software.
 
 *Azure Blueprint* : Use all of them above (hardware+software) from one
- place (*).
-
-==========
-# AZ-104
-==========
+ place.
 
 ---
 #### Recovery Vault vs Backup Vault
