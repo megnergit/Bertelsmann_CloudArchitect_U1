@@ -1,147 +1,156 @@
-==========
+=========================================================
 # AZ-104
-==========
-#### Desired State Configuration
-DSC is part of configuration management
-keep software installed in a VM constant.
-if someone deletes a software, re-install it.
-if someone install a software, delete it
-DSC is a function of PowerShell,
-typically executed from PowerShell.
-Script (='iis.ps1' with 'Configuration ....) is a PowerShell
-
-need   Azure Automation. Azure
-In order to automatically install/uninstall a software in a computer
-Azure Automation: start and stop a VM automatically
-(at a certain time, or with a certain trigger).
-automate start/stop computers on Azure and on-premise,
-by running command from your local (=your laptop) PowerShell.
-need Automation Account,
-separately from MicroSoft account to log in Azure Portal.
-
-##### Glossary
-*WMF* 'Windows Management Framework'. contains *WinRM* + *PowerShell*.
-
-*WinRM*  Windows Remote Management.
-Web Service Management tool by Microsoft
-*Web Service Management* a protocol for  web servers/services
-DSC needs WMF, because it needs WinRM and PowerShell inside WMF.
-
-The differences among similar-looking services:
-*Azure Policy* : it sets individual restriction when we create a VM
-(location, size, ...). The restrictions are mostly on hardware (*).
-
-*ARM Template* : by running a given description (=script) on the command
-line, one can create a VM without clicking menus on Azure Portal. The
-restrictions are mostly on hardware (*).
-
-*Azure DSC* : it also sets restrictions when a VM is created, like Azure
-Policy, but the DSC restrictions are exclusively on software (*). The
-business of Azure Policy and ARM Template are to create (=deploy)
-VMs. The business of DSC, however, includes monitoring (=watch) the
-status of the software combination. DSC intervenes (install/remove
-software) when unwanted changes are made in the combination of the
-software.
-
-*Azure Blueprint* : Use all of them above (hardware+software) from one
- place.
-
----
-#### Recovery Vault vs Backup Vault
-RV: VM, SQL in VM, Azure Files/Storage, HANA,
-BV: SQL Dataabase, Blobs, Disks
-Backup:
-Install Azure Backup Agent 
-File recovery from Backup
-File Level: any internet machine. Linux->Windows also possible
- - pick recovery point
- - download script for recover file.
- - run
-Snapshopt recovery
- -
-Azure Site Recovery
- - create replication (not a backup)
- - not whole VM, but disk only
-VM recovery: need to install rescovery agent to target VM
-
-
-
----
-#### Azure Access Review
-
-
----
+=========================================================
+### Storage
+---------------------------------------------------------
 #### Azure Storage Explorer
 credential: SAS, connection string, or account key
 azcopy: Blob storage (SAS/key/AD), File (SAS)
 
----
-#### Azure Active Directory (Azure AD)
-Security Principal : an 'object' (user, group, service) to which
-                     a role is given. 
-Multi Factor Authentication
-cloud app. like Microsoft 365u
-user actions:
-Autehntication context
-creating tenant -> Azure AD requests you to create DNS
--> use TXT or MX
-(in case of creating DNS zones in other purpose, A or CNAME)
-(=Host name record). DNS zone = dataabse
-for users synced by Azure AD Connect:
-cannot change job info (title/department/admin/company/ID),
-but can change address (location)
-(device)
-Azure AD registration: various device, pc, mobile phones
-Azure AD join: Windows 10 only
-Hybrid Azure AD join: Windows 7+
-Local Admin Group: when Window 10 'joined' Azure AD,
- - not only the owner of the PC, but also Azure AD users can log in.
- - The user who joined the pc + Global Admin Group (automatic)
-Azure AD -> device -> configure device -> local admin group
-can add a device to a group
-Condional Auccess
-1. User and Group
-2. Cloud app (like Microsoft 365 or Azure Portal)
-3. Condition (type of device, location)
-4. Grant (allow (or reroute to MFA) or deny (=block))
-5. Session (App specific setting e.g. Exchagne Online)
-User Admin: only exist for Azure AD (not Azure RBAC) 
-Service Admin: RBAC, classic. subscription level
-(how to apply Service Admin)
-Go Subscription -> Property -> SERVICE ADMIN
-Scope: tenant/administrative unit/specific application
-Global Administrator (AD) -> elevate -> User Access Admin (RBAC)gg
+---------------------------------------------------------
+#### Azure SQL Database
+PaaS. Backup automatically
+SQL Server : IaaS
+
+---------------------------------------------------------
+#### Shared Access Signature
+- Public Access, aka anonymous public read access
+  + AllowBlobPublicAccess
+    - now possible blobs, container may be accessible
+  + Public read access for blobs / container and blobs
+    - cannot set for each blobs. but whole blobs in a container
+- Azure AD
+  + Oauth2.0 token -> storage account
+    - managed Identity: identity assigned to an App
+    - App can access to Key Vault and so on
+- Shared Key
+  + two 512-bit keys (az storage account keys list) => Key Valut 
+- Shared Access Signature
+  + read-only, read-write, expiration
+  + User delegation / Service SAS / Account SAS
+Shared Access Signature : URI + Token
+single URI, 'sp=...' is a Token
+sp=(r|w|l|d) read, write, list, delete
+st=startime, se=expiry time, sr=scope, b:blob
+sig=signature: account key
+C#: container = BlobContainerClient()
+    blog = container.GetblogClient()
+    BlobSasBuilder(blob.BlobContainerName ...)
+    sas.SetPermissions(BlobSasPermissions.Read)
+- always HTTPS - user delegation SAS
+az storage account create
+az storage container create
+Stored Access Policy
+---------------------------------------------------------
+#### Azure Storage Account
+regional. Need two accounts when you want them in two locations.
+Name 3-24. alphabet + number (no symbols)
+Storage V2
+Blob Storage : Block, incremental (log)
+
+---------------------------------------------------------
+#### AzCopy
+azcopy [make|copy|sync|remove|list|jobs]
+Data Lake Storage Gen2 API. Blob only
+Authentication: Azure AD. azcopy login.
+Storage Blob Data Contributor
+SAS
+azcopy copy [source] [dest] [flat]
+can copy data between two storage accounts
+run in background -> large files with fragile connection
+
+---------------------------------------------------------
+#### Azure Import/Export
+Blob Storage or Files
+1. Get Disks
+2. install 'WAImportExport'
+3. copy data with WAImportExport.
+4. Encrypt drives with BitLocker -> Journal files
+5. On Azure Portal, create import job
+   - destination Storage Account / region
+6. Send disks. update Job with tracking number
+Import: Blob/File
+Export: Blob only
 
 
-----
-#### Azure CLI
-az vm restart -g RG -n VM1
-Azure Cloud Shell <- Azure Portal |_>
-- Linux: apt-get(Ubuntu), yum(Redhat), zypper(SUSE)
-- Mac: brew
-CLI: variable=variable
-PowerShell: $variable=variable
-brew update
-brew install azure-cli
-az (group) (subgroup)
-az storage (account|blob|queue)
-to find command : az find blob (AI robot)
-az find "az vm"
-az find "az vm create"
-az storage blob --help
-az storage blob -h
-az login => sign-in page => to connect to a subscription 
-az group create -n NAME --location LOCATION (to put metadata)
-"Wset US" "West Europe" "westus" "westeurope"
-az group list -o table
---generate-ssh-keys
-for linux distributions. Now you have,
-'id_rsa' and 'id_rsa.pub' in your ~/.ssh directory
-20 vCPU pay-as-you-go, 4 vCPU for free tier
-on request up to 10000 vCPU
---no-wait
+---------------------------------------------------------
+#### Azure Storage Explorer
+Storage Management. 
+full access needs - access to strage acccount/container, Azure AD
+connect to Storage - [connection string | SAS|account key]
+access keys (primary and secondary) : az storage account keys list
+Azure Storage/Azure Cosmos DB/Azure Data Lake
 
-----
+
+---------------------------------------------------------
+#### Azure File Storage / File Sync
+File share/File share Snapshopt
+SMB protocol (TCP port 445). NAS. lift-and-shift
+Azure File Sync
+log, metric, crash dump
+images, artefact
+1. Storage account. Quota (=size)
+2. (Windows) Drive character Z -> copy script -> PowerShell on-premise
+3. (Linux) -> copy script -> run as sudo -> or /etc/fstab  
+Secure Transfer required turns off HTTP
+File Share Snapshot: just like time machine. file level. incremental
+- before you deploy a new app, take snapshot of data
+- editing text file -> snapshot
+- temporary backup
+File Sync
+- sync onpremise to Azure -> backup & disaster recovery
+- sync onpremise to Azure -> archive
+Stoarge Sync Service : like a Storage Account Create one.
+Sync Group: inside Storage Sync Service. Have endpoints
+Registered server: on-premise Windows -> add it to Sync Group
+Azure File Sync agent : install this to Registered server
+ - FIleSYncSvc.exe, StorageSync.sys,PowerShell cmdlets StorageSync  
+Server Endpoint: point in file system on Registered Server. e.g. F:\sync1 
+Cloud Endpoint: Azure File Share
+1. Storage Sync Service
+2. Windows server. disable Internet Explorer Enchnaced Security
+3. Install Azure File Syng Agent to Windows Server
+4. Register Windows Server to Storage Sync Service
+   -> automatically open during installation
+Cloud Tiering : cache    
+(Server Endpoint)
+- Changing the path or drive letter after you established a server
+  endpoint on a vo lume is not supported. Make sure you are using a
+  suitable path before creating the server endpoint.
+
+- A registered server can support multiple server endpoints, however,
+  a sync group can only have one server endpoint per registered server
+  at any given time. Other server endpoints within the sync group must
+  be on different registered servers.
+
+- Multiple server endpoints can exist on the same volume if their
+  namespaces are not overlapping (for example, F:\sync1 and F:\sync2)
+  and each endpoint is syncing to a unique sync group.
+
+---------------------------------------------------------
+#### Azure Blob Storage (=object storage)
+non-structured data
+Storage account/Container/Blob
+New-AzStorageContainer
+default: only owner can see container
+Access Tiers: hot/cold on account level
+hot/cool/archive on blob level (object level)
+Life Cycle: only for GPv2 and Blob Storage
+Move hot->cool|archive / Delete
+Replication: versioning must be on. hot or cool
+Replication only for hot and cool (no replication for archive)
+How to upload : '+Add' block/page/incremental
+block -> for all, page -> disk, incremental -> log
+azcopy, .NET library
+Data Factory (account key, SAS)
+blobfuse: virtual file system driver for linus
+Data Box Disk: SSD, Import/Export
+can change hot <-> cool any time
+
+
+=========================================================
+### Compute
+---------------------------------------------------------
 #### Windows Virtual Machine
 created together with VM
 - Storage Account, OS system disk, Data disk, Temp. disk,
@@ -156,144 +165,17 @@ H:HPC
 Managed Disk: storage account managed. can scale out, 
 RBAC access, snapshot (VM must be shutdown once), backup
 
+---------------------------------------------------------
+#### Proximity Placement Groups
+an Availability zone can span two data centers
+PPG in one data center
+applied to availability set / VMSS
+stop VM before adding to PPG
 
 
-----
-#### Azure Automation State Configuration
-Desired State Configuration, Azure Automation
-prevent 'drift'
-'onboard' VMs for management by Azure Automation
-has built-in pull server
-PowerShell DSC: simply a PowerShell script
-declarative: a recipe. other cooks accordingly
-New-SmbShare -Name MyFileShare -Path C:\Shared \
-             -FullAccess User1 -ReadAccess User2
-idempotent: need conditional execusion => DSC
-DSC is automatically idempotent
-LCM: local configuration manager
-push: LCM server -> VM
-pull: VM -> LCM server -> VM : large enterprise
-DSC: Windows, Linux (not Debian, not Ubuntu 18.04)
-Windows Machine needs WMF (Windows Management Framework)
-and WinRM (Windows Remote Mangement) installed
-port TCP 443, global URL, Agent service
-PowerShell PSC: WindowsFeature: adds role (server) to a node
-Configuration, Node, Resource, call
-Node: *.mof: 'localhost' => localhost.mof
-MyDscConfiguration -OutputPath C:\temp\ (execute function)
-array: @(A,B,C)
-credential-> PSCredential
-push mode: Start-DscConfiguration -path D:\
-pull mode: install DSC VM Extension, install WMF
-Local Configuration Manager applies desired state
-1. poll 2. Download 3. Compare 4. Update
-Puppet Agent: configuration management tool from Puppet. Open.
-
-----
-#### Network Watcher
-an extension of VM, Regional, to be in same region with VNet
-only for IaaS. not for PaaS like App Service
-IaaS: VM, VNet, Application Gateway, Load Balancer
-Endpoint can be, VM, FQDN, URI, IPv$ address
-- connection monitor (on endpoint): reachability, latency, topology
-- connection troubleshoot : network _performance_
-network perormance monitor: routing error, blakhole, threshold
-1. Network Topology view
-   - Network Watcher must be in same region with VNet
-2. IP flow verify: only _NSG_ check, internet / on-premises
-   - source -> dest, port, protocol -> [fail/success] + why
-   - if no problem, then check firewall
-3. Next hop: check routing - source -> dest
-   - VM/NIC/IP -> Dest
-   -> Next Hop type [None|Internet|NVA|Gateway|Vnet|Peering]
-      + Route Table
-4. Packet Capture: filter,control -> Azure storage
-   - alert
-5. NSG Flow logs: => presented by Traffic Analytis
-   1. enable Network Watcher in region level
-   2. register Microsoft.Insights in subscription level
-   3. Create Storage Account
-   4. Create NSG Flow Log, choose NSG
-   + into and ouf of a VM
-   - flow log is a JSON file
-
-VPN diagnostics: on-premises -> Azure
-security group view
-Monitoring, Diagnosstic, Metric, Logs
-(Watch communication between 2 VMs)
-1. Extention -> Enable Net Watcher (on both VMs)
-2. Create connection monitor
-3. View connection monitor (diagram of latency)
-   = round trip
-4. Generate Alerts   
-
-
-----
-#### Log Anlytics
-Azure Monitor -> Logs
-create workspace
-connected source: computers. Agents installed in Windows, Linux, storage
-System Center Operation Management Gropu (to be installed on-premises)
-Data Source: log(=events), performance(=metric), syslog, custom
-(Query)
-Heartbeat
-| summarise dcout(computerIP) by bin(timeGenerated, 1h)
-| render timechart
-Table: Event, Syslog, Heartbeat, Alert
-Event
-| where (EventLevelName == "Error")
-| where (TimeGenerate &gt; ago(1days))
-| summarize ErrorCount = count() by Computer
-| top 10 by ErrorCount desc
-StormEvents | count
-T | limit 5
-T | summarize count(), avg(price) by fruit, supplier
-T | top 5 by Name desc nulls last
-T | where fruit=="appl"
-
-----
-#### Azure Monitor
-metrics/logs/alert+action
-app/guest os/resource/subscription/tenant
-activity log: 90 days
-action group: e-mail. 
-runbook/playbook/workbook
-Alert Rule: Scope (=resource), Condition, Action
-Action Group: notification + Action
-----
-#### Azure Backup Center
-work across service/vaults/subscriptions/regions/tenants
-policy/workbook/monitor logs
-Recovery Service Vault: can backup FileShare (probably not Blob) **
-On-premises _Windows_ VM: install Azure Backup Agent (=MARS)
-get Vault credential file
-backup policy: when/what/how long/network throttling
-MARS: volume level backup
-Azure Backup does not charge amount of data/traffic
-(Backup of Virtual Machines) 1. RSV 2. backup policy 3. go
-Recovery Service Vault/Azure Backup/Azure Site Recovery
-snapshots
-MARS (Microsoft Azure Recovery Service) Agent 
-MABS (Azure Backup Server)
-Backu options
-1. Snapshots in Managed Disk: quidk, simple, read-only
-   images: VM stopped. All disks attached to VM
-   snapshot: one disk.
-2. Azure Backup: Linux, Windows, in geo-redundant vaults, VM or file
-3. Azure Site REcovery: restore VMs in other regions 
-(Snapshot)
-1. Snapshot is created (retains 2 days by default) 
-2. Snapshot is sent to Recovery Service Vault
-Recovery Service Vault must in in the same region with VM,
-but need to be replicated (geo or LRS) (geo default)
-Azure VMs have backup agents already
-(Restore VM)
-1. 'Restore VM'
-DPM: Data Protection Manager
-Soft delete of backup data
-it is not really deteleted, but kept 14 days
-
-----
+=========================================================
+### Network 
+---------------------------------------------------------
 #### Azure Load Balancer
 five tuple hash: IPx2/Portx2/protocol
 Load balcenr is a software.
@@ -333,8 +215,10 @@ Adding VMs to backend pool:
 => Network Contributer on RG
 Adding Healthprobe to Loadbalancer:
 => Network Contributer on RG
+when Load Balancers SKU is Standard,
+public IP of LB must be Standard as well
 
-----
+---------------------------------------------------------
 #### Routing/Route/Router, Network Virtual Appliance, NVA
 VNet, Subnet, on-premises => System Route (automatic)
 System Route cannot be deleted,
@@ -394,7 +278,7 @@ but add another. => alain@contoso.com
 2. go to registrar and add Azure AD DNS. Create a new TXT record   
   (one has to do this at regitrar's web site/tool)
 
-----
+---------------------------------------------------------
 #### IP Address
 public IP: load balancer, VPN Gateways, Application gateway
 Basic:static/dynamic. inbound only. no routing. no Availability Zones
@@ -411,7 +295,7 @@ private IP addresses ranges
 by Internet Assigned Numbers Authority (IANA)
 *.0, *.256: subnet *.1, *.2, *.3: internal 
 
-----
+---------------------------------------------------------
 #### Azure Private Link Service
 Private endpoind = a special NIC for a VNet
 Prinvate link = link between service and endpoint
@@ -455,8 +339,50 @@ Private Endpoint: per resource (Storage account of a user)
 'private' means private IP only.
 Service Endpoint: per service (all Storage account of users)
 Service Endpoint: target IP (=IP of service) are public
+---------------------------------------------------------
 
-----
+
+
+=========================================================
+### Idendity 
+---------------------------------------------------------
+#### Azure Active Directory (Azure AD)
+Security Principal : an 'object' (user, group, service) to which
+                     a role is given. 
+Multi Factor Authentication
+cloud app. like Microsoft 365u
+user actions:
+Autehntication context
+creating tenant -> Azure AD requests you to create DNS
+-> use TXT or MX
+(in case of creating DNS zones in other purpose, A or CNAME)
+(=Host name record). DNS zone = dataabse
+for users synced by Azure AD Connect:
+cannot change job info (title/department/admin/company/ID),
+but can change address (location)
+(device)
+Azure AD registration: various device, pc, mobile phones
+Azure AD join: Windows 10 only
+Hybrid Azure AD join: Windows 7+
+Local Admin Group: when Window 10 'joined' Azure AD,
+ - not only the owner of the PC, but also Azure AD users can log in.
+ - The user who joined the pc + Global Admin Group (automatic)
+Azure AD -> device -> configure device -> local admin group
+can add a device to a group
+Condional Auccess
+1. User and Group
+2. Cloud app (like Microsoft 365 or Azure Portal)
+3. Condition (type of device, location)
+4. Grant (allow (or reroute to MFA) or deny (=block))
+5. Session (App specific setting e.g. Exchagne Online)
+User Admin: only exist for Azure AD (not Azure RBAC) 
+Service Admin: RBAC, classic. subscription level
+(how to apply Service Admin)
+Go Subscription -> Property -> SERVICE ADMIN
+Scope: tenant/administrative unit/specific application
+Global Administrator (AD) -> elevate -> User Access Admin (RBAC)gg
+
+---------------------------------------------------------
 #### Azure Administrative Unit
 (Scenario)
 - create Administrative Unit for School of Business
@@ -468,7 +394,193 @@ Azure Free for AAU members
 assing administrator roles under each AAU
 User/Authentication/Help Desk  Administrator
 
-----
+---------------------------------------------------------
+#### Azure Access Review
+To see who uses what, how much. 
+---------------------------------------------------------
+#### Self Service Password Reset (SSPR)
+Azure AD
+Secret quenstion can be used for SSPR (but not for MFA)
+use 2 or more authentication methods
+User seleect the ways to reset password
+use mobile app as primary -> e-mail -> office phone
+phone is second last option
+question is last option (should not use for admin account)
+user reset -> an alert sent to the user
+admin reset his password -> an alert sent to all admin group
+SSPR (pw forgot) only for Premium P1/P2 or Microsoft 365
+(what you need to test SSPR)
+- Azure AD license, Global Admin, plane user account
+- user account has to have AD license
+- security gropu (to test)
+[Disabled|Enabled|Selected]
+Enabled : all users, Selected: selected groups
+1. Portal -> Identity -> Active Directory -> Password reset
+2. Enable SSPR
+3. How many methods (1|2)? Which one (more than 2 when you pick '2')?
+4. User must register? How long a password valid (180days)?
+5. Notification
+6. Set Helpdesk URL
+---------------------------------------------------------
+#### Azure RBAC
+Azure subscription can take only one Azure AD
+Azure AD Conenct (must be installed in on-premise)
+Who: Security principal: User + application
+What: Role Definition = permissions 
+Where: Scope: Management Group, Subs, RG, R (not tenant)
+Azure AD roles <-> Azure roles
+in the middle Global Admin/User Access Admin
+must elevate yourself
+Azure AD roles: Global Admin/App Admin/App Developer
+Azure roles: Owner/Contributer/Reader/User Access Admin
+Service Admin/Co-Admins/Account Admin
+e.g. Resource Group -> Access control (IAM)
+1. security principal [user|group|service]
+2. role definition [built-in|custom]
+   "Actions": ["*"\
+   "NotActions": ["Auth/*/Delete","Auth/*/Write",...]
+   read, write, delete...
+   Owner:full access, delegate access to others
+   Contributor: full without delegate access to others, without blueprint
+   Readers: viewer
+   User Access Admin: nothing, but can delgate access to others
+3. Scope [management group|subscription|RG|resource]
+4. Role Assignment: go RG -> IAM -> security principal + role
+Azure RBAC: additive, not multiplicative  
+
+
+=========================================================
+### Monitor
+---------------------------------------------------------
+#### Azure Monitor
+metrics/logs/alert+action
+app/guest os/resource/subscription/tenant
+activity log: 90 days
+action group: e-mail. 
+runbook/playbook/workbook
+Alert Rule: Scope (=resource), Condition, Action
+Action Group: notification + Action
+---------------------------------------------------------
+#### Network Watcher
+an extension of VM, Regional, to be in same region with VNet
+only for IaaS. not for PaaS like App Service
+IaaS: VM, VNet, Application Gateway, Load Balancer
+Endpoint can be, VM, FQDN, URI, IPv$ address
+- connection monitor (on endpoint): reachability, latency, topology
+- connection troubleshoot : network _performance_
+network perormance monitor: routing error, blakhole, threshold
+1. Network Topology view
+   - Network Watcher must be in same region with VNet
+2. IP flow verify: only _NSG_ check, internet / on-premises
+   - source -> dest, port, protocol -> [fail/success] + why
+   - if no problem, then check firewall
+3. Next hop: check routing - source -> dest
+   - VM/NIC/IP -> Dest
+   -> Next Hop type [None|Internet|NVA|Gateway|Vnet|Peering]
+      + Route Table
+4. Packet Capture: filter,control -> Azure storage
+   - alert
+5. NSG Flow logs: => presented by Traffic Analytis
+   1. enable Network Watcher in region level
+   2. register Microsoft.Insights in subscription level
+   3. Create Storage Account
+   4. Create NSG Flow Log, choose NSG
+   + into and ouf of a VM
+   - flow log is a JSON file
+
+VPN diagnostics: on-premises -> Azure
+security group view
+Monitoring, Diagnosstic, Metric, Logs
+(Watch communication between 2 VMs)
+1. Extention -> Enable Net Watcher (on both VMs)
+2. Create connection monitor
+3. View connection monitor (diagram of latency)
+   = round trip
+4. Generate Alerts   
+
+---------------------------------------------------------
+#### Log Analytics
+Azure Monitor -> Logs
+create workspace
+connected source: computers. Agents installed in Windows, Linux, storage
+System Center Operation Management Gropu (to be installed on-premises)
+Data Source: log(=events), performance(=metric), syslog, custom
+(Query)
+Heartbeat
+| summarise dcout(computerIP) by bin(timeGenerated, 1h)
+| render timechart
+Table: Event, Syslog, Heartbeat, Alert
+Event
+| where (EventLevelName == "Error")
+| where (TimeGenerate &gt; ago(1days))
+| summarize ErrorCount = count() by Computer
+| top 10 by ErrorCount desc
+StormEvents | count
+T | limit 5
+T | summarize count(), avg(price) by fruit, supplier
+T | top 5 by Name desc nulls last
+T | where fruit=="appl"
+
+
+=========================================================
+### Backups
+---------------------------------------------------------
+#### Recovery Vault vs Backup Vault
+RV: VM, SQL in VM, Azure Files/Storage, HANA,
+BV: SQL Dataabase, Blobs, Disks
+Backup:
+Install Azure Backup Agent 
+File recovery from Backup
+File Level: any internet machine. Linux->Windows also possible
+ - pick recovery point
+ - download script for recover file.
+ - run
+Snapshopt recovery
+ -
+Azure Site Recovery
+ - create replication (not a backup)
+ - not whole VM, but disk only
+VM recovery: need to install rescovery agent to target VM
+---------------------------------------------------------
+#### Azure Backup Center
+work across service/vaults/subscriptions/regions/tenants
+policy/workbook/monitor logs
+Recovery Service Vault: can backup FileShare (probably not Blob) **
+On-premises _Windows_ VM: install Azure Backup Agent (=MARS)
+get Vault credential file
+backup policy: when/what/how long/network throttling
+MARS: volume level backup
+Azure Backup does not charge amount of data/traffic
+(Backup of Virtual Machines) 1. RSV 2. backup policy 3. go
+Recovery Service Vault/Azure Backup/Azure Site Recovery
+snapshots
+MARS (Microsoft Azure Recovery Service) Agent 
+MABS (Azure Backup Server)
+Backu options
+1. Snapshots in Managed Disk: quidk, simple, read-only
+   images: VM stopped. All disks attached to VM
+   snapshot: one disk.
+2. Azure Backup: Linux, Windows, in geo-redundant vaults, VM or file
+3. Azure Site REcovery: restore VMs in other regions 
+(Snapshot)
+1. Snapshot is created (retains 2 days by default) 
+2. Snapshot is sent to Recovery Service Vault
+Recovery Service Vault must in in the same region with VM,
+but need to be replicated (geo or LRS) (geo default)
+Azure VMs have backup agents already
+(Restore VM)
+1. 'Restore VM'
+DPM: Data Protection Manager
+Soft delete of backup data
+it is not really deteleted, but kept 14 days
+
+---------------------------------------------------------
+
+
+=========================================================
+### Operation
+
+---------------------------------------------------------
 #### Move / Moving Resources / Azure Resource Mover
 1. inter subscription
 (VM) we cannot move VMs when
@@ -504,208 +616,113 @@ Locks: Sub/RG/Resource: when on RG, cannot scale App
 
 Tags:  Sub/RG/Resource
 Read-Only RG: can add from outside. 
+---------------------------------------------------------
+#### Azure CLI
+az vm restart -g RG -n VM1
+Azure Cloud Shell <- Azure Portal |_>
+- Linux: apt-get(Ubuntu), yum(Redhat), zypper(SUSE)
+- Mac: brew
+CLI: variable=variable
+PowerShell: $variable=variable
+brew update
+brew install azure-cli
+az (group) (subgroup)
+az storage (account|blob|queue)
+to find command : az find blob (AI robot)
+az find "az vm"
+az find "az vm create"
+az storage blob --help
+az storage blob -h
+az login => sign-in page => to connect to a subscription 
+az group create -n NAME --location LOCATION (to put metadata)
+"Wset US" "West Europe" "westus" "westeurope"
+az group list -o table
+--generate-ssh-keys
+for linux distributions. Now you have,
+'id_rsa' and 'id_rsa.pub' in your ~/.ssh directory
+20 vCPU pay-as-you-go, 4 vCPU for free tier
+on request up to 10000 vCPU
+--no-wait
 
-----
-#### Proximity Placement Groups
-an Availability zone can span two data centers
-PPG in one data center
-applied to availability set / VMSS
-stop VM before adding to PPG
+---------------------------------------------------------
+#### Azure Automation State Configuration
+Desired State Configuration, Azure Automation
+prevent 'drift'
+'onboard' VMs for management by Azure Automation
+has built-in pull server
+PowerShell DSC: simply a PowerShell script
+declarative: a recipe. other cooks accordingly
+New-SmbShare -Name MyFileShare -Path C:\Shared \
+             -FullAccess User1 -ReadAccess User2
+idempotent: need conditional execusion => DSC
+DSC is automatically idempotent
+LCM: local configuration manager
+push: LCM server -> VM
+pull: VM -> LCM server -> VM : large enterprise
+DSC: Windows, Linux (not Debian, not Ubuntu 18.04)
+Windows Machine needs WMF (Windows Management Framework)
+and WinRM (Windows Remote Mangement) installed
+port TCP 443, global URL, Agent service
+PowerShell PSC: WindowsFeature: adds role (server) to a node
+Configuration, Node, Resource, call
+Node: *.mof: 'localhost' => localhost.mof
+MyDscConfiguration -OutputPath C:\temp\ (execute function)
+array: @(A,B,C)
+credential-> PSCredential
+push mode: Start-DscConfiguration -path D:\
+pull mode: install DSC VM Extension, install WMF
+Local Configuration Manager applies desired state
+1. poll 2. Download 3. Compare 4. Update
+Puppet Agent: configuration management tool from Puppet. Open.
+---------------------------------------------------------
+#### Desired State Configuration
+DSC is part of configuration management
+keep software installed in a VM constant.
+if someone deletes a software, re-install it.
+if someone install a software, delete it
+DSC is a function of PowerShell,
+typically executed from PowerShell.
+Script (='iis.ps1' with 'Configuration ....) is a PowerShell
+need  Azure Automation. Azure
+In order to automatically install/uninstall a software in a computer
+Azure Automation: start and stop a VM automatically
+(at a certain time, or with a certain trigger).
+automate start/stop computers on Azure and on-premise,
+by running command from your local (=your laptop) PowerShell.
+need Automation Account,
+separately from MicroSoft account to log in Azure Portal.
+
+##### Glossary
+*WMF* 'Windows Management Framework'. contains *WinRM* + *PowerShell*.
+
+*WinRM*  Windows Remote Management.
+Web Service Management tool by Microsoft
+*Web Service Management* a protocol for  web servers/services
+DSC needs WMF, because it needs WinRM and PowerShell inside WMF.
+
+The differences among similar-looking services:
+*Azure Policy* : it sets individual restriction when we create a VM
+(location, size, ...). The restrictions are mostly on hardware (*).
+
+*ARM Template* : by running a given description (=script) on the command
+line, one can create a VM without clicking menus on Azure Portal. The
+restrictions are mostly on hardware (*).
+
+*Azure DSC* : it also sets restrictions when a VM is created, like Azure
+Policy, but the DSC restrictions are exclusively on software (*). The
+business of Azure Policy and ARM Template are to create (=deploy)
+VMs. The business of DSC, however, includes monitoring (=watch) the
+status of the software combination. DSC intervenes (install/remove
+software) when unwanted changes are made in the combination of the
+software.
+
+*Azure Blueprint* : Use all of them above (hardware+software) from one
+ place.
 
 
-----
-#### Azure SQL Database
-PaaS. Backup automatically
-SQL Server : IaaS
+=========================================================
 
-
-
-----
-#### Sahred Access Signature
-- Public Access, aka anonymous public read access
-  + AllowBlobPublicAccess
-    - now possible blobs, container may be accessible
-  + Public read access for blobs / container and blobs
-    - cannot set for each blobs. but whole blobs in a container
-- Azure AD
-  + Oauth2.0 token -> storage account
-    - managed Identity: identity assigned to an App
-    - App can access to Key Vault and so on
-- Shared Key
-  + two 512-bit keys (az storage account keys list) => Key Valut 
-- Shared Access Signature
-  + read-only, read-write, expiration
-  + User delegation / Service SAS / Account SAS
-Shared Access Signature : URI + Token
-single URI, 'sp=...' is a Token
-sp=(r|w|l|d) read, write, list, delete
-st=startime, se=expiry time, sr=scope, b:blob
-sig=signature: account key
-C#: container = BlobContainerClient()
-    blog = container.GetblogClient()
-    BlobSasBuilder(blob.BlobContainerName ...)
-    sas.SetPermissions(BlobSasPermissions.Read)
-- always HTTPS - user delegation SAS
-az storage account create
-az storage container create
-Stored Access Policy
-----
-#### Azure Storage Account
-regional. Need two accounts when you want them in two locations.
-Name 3-24. alphabet + number (no symbols)
-Storage V2
-Blob Storage : Block, incremental (log)
-
-----
-#### AzCopy
-azcopy [make|copy|sync|remove|list|jobs]
-Data Lake Storage Gen2 API. Blob only
-Authentication: Azure AD. azcopy login.
-Storage Blob Data Contributor
-SAS
-azcopy copy [source] [dest] [flat]
-can copy data between two storage accounts
-run in background -> large files with fragile connection
-
-----
-#### Azure Import/Export
-Blob Storage or Files
-1. Get Disks
-2. install 'WAImportExport'
-3. copy data with WAImportExport.
-4. Encrypt drives with BitLocker -> Journal files
-5. On Azure Portal, create import job
-   - destination Storage Account / region
-6. Send disks. update Job with tracking number
-Import: Blob/File
-Export: Blob only
-
-
-----
-#### Azure Storage Explore
-Storage Management. 
-full access needs - access to strage acccount/container, Azure AD
-connect to Storage - [connection string | SAS|account key]
-access keys (primary and secondary) : az storage account keys list
-Azure Storage/Azure Cosmos DB/Azure Data Lake
-
-
-----
-#### Azure File Storage / File Sync
-File share/File share Snapshopt
-SMB protocol (TCP port 445). NAS. lift-and-shift
-Azure File Sync
-log, metric, crash dump
-images, artefact
-1. Storage account. Quota (=size)
-2. (Windows) Drive character Z -> copy script -> PowerShell on-premise
-3. (Linux) -> copy script -> run as sudo -> or /etc/fstab  
-Secure Transfer required turns off HTTP
-File Share Snapshot: just like time machine. file level. incremental
-- before you deploy a new app, take snapshot of data
-- editing text file -> snapshot
-- temporary backup
-File Sync
-- sync onpremise to Azure -> backup & disaster recovery
-- sync onpremise to Azure -> archive
-Stoarge Sync Service : like a Storage Account Create one.
-Sync Group: inside Storage Sync Service. Have endpoints
-Registered server: on-premise Windows -> add it to Sync Group
-Azure File Sync agent : install this to Registered server
- - FIleSYncSvc.exe, StorageSync.sys,PowerShell cmdlets StorageSync  
-Server Endpoint: point in file system on Registered Server. e.g. F:\sync1 
-Cloud Endpoint: Azure File Share
-1. Storage Sync Service
-2. Windows server. disable Internet Explorer Enchnaced Security
-3. Install Azure File Syng Agent to Windows Server
-4. Register Windows Server to Storage Sync Service
-   -> automatically open during installation
-Cloud Tiering : cache    
-(Server Endpoint)
-- Changing the path or drive letter after you established a server
-  endpoint on a vo lume is not supported. Make sure you are using a
-  suitable path before creating the server endpoint.
-
-- A registered server can support multiple server endpoints, however,
-  a sync group can only have one server endpoint per registered server
-  at any given time. Other server endpoints within the sync group must
-  be on different registered servers.
-
-- Multiple server endpoints can exist on the same volume if their
-  namespaces are not overlapping (for example, F:\sync1 and F:\sync2)
-  and each endpoint is syncing to a unique sync group.
-
-----
-#### Azure Blob Storage (=object storage)
-non-structured data
-Storage account/Container/Blob
-New-AzStorageContainer
-default: only owner can see container
-Access Tiers: hot/cold on account level
-hot/cool/archive on blob level (object level)
-Life Cycle: only for GPv2 and Blob Storage
-Move hot->cool|archive / Delete
-Replication: versioning must be on. hot or cool
-Replication only for hot and cool (no replication for archive)
-How to upload : '+Add' block/page/incremental
-block -> for all, page -> disk, incremental -> log
-azcopy, .NET library
-Data Factory (account key, SAS)
-blobfuse: virtual file system driver for linus
-Data Box Disk: SSD, Import/Export
-can change hot <-> cool any time
-
-----
-#### Self Service Password Reset (SSPR)
-Azure AD
-Secret quenstion can be used for SSPR (but not for MFA)
-use 2 or more authentication methods
-User seleect the ways to reset password
-use mobile app as primary -> e-mail -> office phone
-phone is second last option
-question is last option (should not use for admin account)
-user reset -> an alert sent to the user
-admin reset his password -> an alert sent to all admin group
-SSPR (pw forgot) only for Premium P1/P2 or Microsoft 365
-(what you need to test SSPR)
-- Azure AD license, Global Admin, plane user account
-- user account has to have AD license
-- security gropu (to test)
-[Disabled|Enabled|Selected]
-Enabled : all users, Selected: selected groups
-1. Portal -> Identity -> Active Directory -> Password reset
-2. Enable SSPR
-3. How many methods (1|2)? Which one (more than 2 when you pick '2')?
-4. User must register? How long a password valid (180days)?
-5. Notification
-6. Set Helpdesk URL
-----
-#### Azure RBAC
-Azure subscription can take only one Azure AD
-Azure AD Conenct (must be installed in on-premise)
-Who: Security principal: User + application
-What: Role Definition = permissions 
-Where: Scope: Management Group, Subs, RG, R (not tenant)
-Azure AD roles <-> Azure roles
-in the middle Global Admin/User Access Admin
-must elevate yourself
-Azure AD roles: Global Admin/App Admin/App Developer
-Azure roles: Owner/Contributer/Reader/User Access Admin
-Service Admin/Co-Admins/Account Admin
-e.g. Resource Group -> Access control (IAM)
-1. security principal [user|group|service]
-2. role definition [built-in|custom]
-   "Actions": ["*"\
-   "NotActions": ["Auth/*/Delete","Auth/*/Write",...]
-   read, write, delete...
-   Owner:full access, delegate access to others
-   Contributor: full without delegate access to others, without blueprint
-   Readers: viewer
-   User Access Admin: nothing, but can delgate access to others
-3. Scope [management group|subscription|RG|resource]
-4. Role Assignment: go RG -> IAM -> security principal + role
-Azure RBAC: additive, not multiplicative  
-----
+---------------------------------------------------------
 #### Azure Application Gateway
 a load balancer for web applications. URL base
 backedn: VM, VM scaleset, Azure App Service, on-premise
@@ -740,10 +757,7 @@ Web Application Firewall (WAF)
    - Bots, crawlers, scanners, HTTP protocol violations, anomalies
 OWASP: Core Rule Set (CRS), WAF CRS 2.2.9/3.0
    
-   
-
-
-----
+---------------------------------------------------------
 #### Azure App Service Plan
 Server farm. Tied to a Region
 Web App and App Service Plan must be in a sam region
@@ -763,7 +777,7 @@ Metric/Schedule
 can scale in to zero.
 Alert -> e-mail, webhook
 
-----
+---------------------------------------------------------
 #### Azure Load Balancer
 TCP/UDP
 internal/public
@@ -795,10 +809,10 @@ Health Probe
    + TCP: if connection is successful
 Basic: VMs in backend pool must be in scaleset/availability set
 Standard: single VMs can be added to backpool
-----
+---------------------------------------------------------
 #### Private Endpoint -> Private Link
 PaaS
-----
+---------------------------------------------------------
 #### Service Endpoint
 Endpoint of VNet (private IP) -> Azure service
 now one can use Azure service from VNet
@@ -810,7 +824,7 @@ service traffic does not need to go to UDR
    - SQL Database/Warehouse/PostgreSQL/MySQL/CosmosDB
    - Key Vault
    - Service Bus/Event Hubs
-----
+---------------------------------------------------------
 #### User Defined Route Table
 System Route : default route inside a VNet, between Subnets
 User Defined Route: define NVA as a next hop
@@ -833,7 +847,7 @@ NVA are VMs
 IP Fowarding: to pass a packet to other IP
 (it does not stop there <=> black hole) 
 
-----
+---------------------------------------------------------
 #### ExpressRoute
 collocation environment/center ~ community cloud
 Exchange provider facility
@@ -857,7 +871,7 @@ ExpressRoute - 3 way conection
 3 Any-to-any (IPVPN). many VNets to many on-premise. WAN. MPLS. layer 3
 4 NO site-to-site. but can do that in PowerShell
 
-----
+---------------------------------------------------------
 #### Azure Virtual WAN
 many on-premise + many VNets
 on-premise -> (regional Hub) -> Azure VNet
@@ -866,7 +880,7 @@ site-site and point-to-site by VPN Gateway + ExpressRoute
 Basic : site-site by VPN Gateway only
 Standard : ER-p2s. 
 
-----
+---------------------------------------------------------
 #### VPN Gateway
 IPSec: encription IKES: authentication, 
 minimun 2 VMs, can be in Availability Zones
@@ -899,7 +913,7 @@ Add connection => Portal: when two VNets are on same subscription
 active-standby 10-15s, 60-90s
 
 
-----
+---------------------------------------------------------
 #### VNet Peering
 - Regional/Virtual VNet Peering
 - Global VNet Peering (but not from Azure Goverment)
@@ -969,6 +983,9 @@ Azure Application Gateway: layer 7 (application, HTTP, X500)
 scale set < 1000
 scale set with custom image < 600
 Azure Spot Instance: 
+ScaleSetVM: default. VMs come with it.
+VM: empty Scale set. VM to be added manually
+
 
 ----
 #### Virtual Machine
@@ -1457,7 +1474,7 @@ Azure SQL Database is a PaaS.
 END
 
 ---
-####  Azure Kubernetes Service
+#### Azure Kubernetes Service
 Node pool > Node > Deployment (YAML) > Pods > Container
 YAML: Manifest
 node : VM
@@ -1510,8 +1527,6 @@ has two Azure File Shares as volume mounts (one for each container)
 Dedployment 
 1. ARM template (recommended)
 2. YAML 
-
-
 
 ---
 #### Storage for Virtual Machine
