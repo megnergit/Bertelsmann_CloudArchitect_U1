@@ -1,5 +1,178 @@
+```
 =========================================================
-# AZ-104
+# AZ-104 Notebook including '30 Days Learn it' for Solutions Architect
+=========================================================
+### Compute
+---------------------------------------------------------
+#### Virtual Machine Extention
+- Extensions
+- Custom Script
+- Desired State Configuration (DSC)
+
+- Extensions
+small aplications. post-deployment configuration.
+automation task. software installation. anti-virus protection.
+like an autoexec.bat.
+- Custom Script Extensions (CSE)
+Azure Portal -> Extensions -> PowerShell script
+Set-AzVmCustomScriptExtentions -FileUri https://scriptstore.blob..
+Timeout: 90 min; Dependencies;
+- Desired State Configuration
+DSC is a PowerShell Script *.ps1
+Configuration IISInstall{
+ Node "localhost"{
+  WindowsFeature IIS{ # resource block
+   Ensure = "Present"
+   Name = 'Web-Server"
+}}}
+
+---------------------------------------------------------
+#### Virtual Machine Scale Set
+Unplanned Hardware Maintenance: live migration, low performance
+Unexpected Downtime: automatic heal, reboot
+Planned Mainenance: no impact
+availability set: VM should habe managed disks. 99.95%
+fault domain  
+update domain <= 20 
+availability zones: 99.99%
+single VM + Premium disks: 99.9% 
+Azure Load Balancer: layer 4 (transport, TCP, UDP)
+Azure Application Gateway: layer 7 (application, HTTP, X500)
+                           SSL termination
+scale set < 1000
+scale set with custom image < 600
+Azure Spot Instance: 
+ScaleSetVM: default. VMs come with it.
+VM: empty Scale set. VM to be added manually
+
+---------------------------------------------------------
+#### Virtual Machine
+1. network
+2. Region
+3. Size
+4. Storage/OS
+       compute: webserver, application server, network appliance
+memory: SQL
+OS system disk : SATA
+data disk : SCSI
+Temp. disk : /dev/sdb /mnt
+UbuntuLTS (longterm support)
+monitor, agent, script, extention
+window:rdp
+linux:ssh PuTTY
+Azure Bastion:PaaS RDP or SSH
+WinRM (Windows Remote Management): command-line session
+non-interactive PowerShell scripts. port 5986 (NSG!)
+1. Create Key Bault
+2. Create self-signed certificate
+3. Upload self-signed certificate to Key vault
+4. Identify URL of certificate
+5. Refer URL in VM configuration
+Linux VM : SSH = encripted
+public Key => VM
+private Key => your laptop
+SSH-RSA 2048bit
+when you create a VM, automatically created
+NIC+NSG/VNet/Subnet/Disks
+defaul NSG 1000 RDP TCP 3389 Allow for inbound? 
+Virtual machine Scale Set:built-in update domate, 
+20% of machines updated at once.
+---------------------------------------------------------
+#### Azure Kubernetes Service
+not PaaS. only partly.
+
+---------------------------------------------------------
+#### Azure App Service Plan
+Server farm. Tied to a Region
+Web App and App Service Plan must be in a sam region
+- Region/number of VM/size of VM
+Free/Shared: not scale out. VM shared by other customer Apps. no SLA
+Basic: no scaling. Dev/Test
+Standard/Premium/Isolated: can be product level
+multiple Apps share one/more VM
+deploy slots share one/more VM
+diagnostics, backup also on same VM
+5 Apps on 5 VMs => scales simultaneously
+'Isolated' : app is resorce intensice/scale independently/in other geo
+Scale up: change plan. can scale down as well. a few seconds
+Scale out: number of VM. < 30 (Isolated. VM <100) 
+Autoscaling: VM instance-base. Scale-out (OR). Scale-in (AND)
+Metric/Schedule
+can scale in to zero.
+Alert -> e-mail, webhook
+
+---------------------------------------------------------
+#### Azure Container Registry
+az group create -n RG --location westeurope
+az acr create -n NAME_UNIQ -sku Premium
+- edit Dockerfile
+az acr build --registry NAME_UNIQ --image hello:v1 .
+az acr build repository list -n NQME_UNIQ 
+credential: Azure AD (RBAC) | admin for registry
+az acr update -n NAME_UNIQ --admin-enabled true
+az acr credential show -n NAME_UNIQ => username, password
+az acr replication create
+az acr replication list
+can automate build and deploymen
+security, credential, encryption > Docker Hub
+webhook
+az acr task create
+1. GitHub monitored by ACR (task)
+   -> ACR build an image -> store
+2. webhook by ACR (image updated)
+   -> subscribed by App and Service -> App pull -> App restart
+
+
+---------------------------------------------------------
+#### Azure Container Instances
+Persistent Storage : need Azure Files Share 
+az container create -g RG -n mycontainer --image mcr.microsoft.com/
+DNS name label: can create new, but must be unique $RANDOM
+az container show --query "{FQDN:ipAddress.fqdn}"
+az container show --query "{ProvisioningState:provisioningState}"
+http://aci-demo-24331.eastuslazurecontainer.io
+restart policy : Always|Never|OnFailure 
+--environment-variables COSMOS_DB_ENDPOINT=$COSMOS_DB_ENDPOINT
+--source-environment-variables COSMOS_DB_ENDPOINT=$COSMOS_DB_ENDPOINT
+stateless service
+file share
+az storage account create
+az storage account show-connection-string
+az storage share create -n NAME
+az storage account keys list
+az storage file list -s aci-share-demo -o table
+az storage file download -s aci-share-demo -p FILENAME
+az container logs
+az container attach
+az container exec
+az monitor metrics list --resource CONTAINER_ID --metrics CPUUsage
+init Container: works at the begining, 
+set account, run script, configure database, etc. 
+same hardware with other workload containers
+
+
+---------------------------------------------------------
+#### Windows Virtual Machine
+created together with VM
+- Storage Account, OS system disk, Data disk, Temp. disk,
+- VNet, NIC, public IP
+quota: 20 VM cores pro subscription pro region.
+B,D: small-to-medium web-service/database
+F: medium web-service, batch process
+E,G,M:memory-intensive, analytics
+Ls: Big Data, SQL, NoSQL, fast disk IO
+N:GPU
+H:HPC
+Managed Disk: storage account managed. can scale out, 
+RBAC access, snapshot (VM must be shutdown once), backup
+
+---------------------------------------------------------
+#### Proximity Placement Groups
+an Availability zone can span two data centers
+PPG in one data center
+applied to availability set / VMSS
+stop VM before adding to PPG
+
 =========================================================
 ### Storage
 ---------------------------------------------------------
@@ -148,33 +321,202 @@ Data Box Disk: SSD, Import/Export
 can change hot <-> cool any time
 
 
-=========================================================
-### Compute
----------------------------------------------------------
-#### Windows Virtual Machine
-created together with VM
-- Storage Account, OS system disk, Data disk, Temp. disk,
-- VNet, NIC, public IP
-quota: 20 VM cores pro subscription pro region.
-B,D: small-to-medium web-service/database
-F: medium web-service, batch process
-E,G,M:memory-intensive, analytics
-Ls: Big Data, SQL, NoSQL, fast disk IO
-N:GPU
-H:HPC
-Managed Disk: storage account managed. can scale out, 
-RBAC access, snapshot (VM must be shutdown once), backup
-
----------------------------------------------------------
-#### Proximity Placement Groups
-an Availability zone can span two data centers
-PPG in one data center
-applied to availability set / VMSS
-stop VM before adding to PPG
-
 
 =========================================================
 ### Network 
+---------------------------------------------------------
+#### Azure Load Balancer
+TCP/UDP
+internal/public
+Public Load Balacer
+Public IP (TCP/80) of LB->(map) -> Private IPs of VMs
+Internal Load Balacer
+Private IPs of VMs -> LB -> (map) -> Private IPs of VMs on other subnet
+all has to be in one VNet
+- multi tier application = Web Frontene + SQL
+- line of business = important for business
+- SOA = service oriented architecture
+SKU: Basic/Standard
+HTTPS, Availability Zones (backend), 99.99: only for Standard
+backend pools: must be on one VNet. <1000 VMs
+can VNet host VMs in different regions? => No. Single region
+(so, no Region-pair, but Availability Zones are okay)
+Load Balancer Rules: equal distribution, 5-tuple hash
+Frontend/Backend/Protocaol/Port/Backend/HealthProbe/SessionPersistence
+LB public IP -> NAT rules -> TCP 3389 (RDP) to specific VM
+Session Persistence
+5-tuple (Source IP/port/Destination IP/port/protocol)
+protocol is common
+5-tuple -> 3 tuple or 2 tuple
+look at source IP/port and protocol (3) or source IP/port only (2)
+- shopping cart
+Health Probe
+1. Create one.
+   + HTTP poll every 15 sec, 'HTTP 200' withing 31 sec. backend URI
+   + TCP: if connection is successful
+Basic: VMs in backend pool must be in scaleset/availability set
+Standard: single VMs can be added to backpool
+---------------------------------------------------------
+#### Private Endpoint -> Private Link
+PaaS
+---------------------------------------------------------
+#### Service Endpoint
+Endpoint of VNet (private IP) -> Azure service
+now one can use Azure service from VNet
+keep Azure serivice out of reach from public IP
+service traffic does not need to go to UDR
+1. Create Service Endpoint
+   + which service?
+   - Storage
+   - SQL Database/Warehouse/PostgreSQL/MySQL/CosmosDB
+   - Key Vault
+   - Service Bus/Event Hubs
+---------------------------------------------------------
+#### User Defined Route Table
+System Route : default route inside a VNet, between Subnets
+User Defined Route: define NVA as a next hop
+1 route table to many subnets
+one subnet can have only one route table
+NVA are VMs
+1. Create Routing Table
+- Name, Subscription, RG, location, 
+- VNet route propagation
+  + current subnet route is automatically added to table
+2. Create Custom Route ('Add route')
+- Name
+- Address prefix (= subnet mask) 10.0.1.0/24
+- Next hop : [VNet Gateway, NVA, VNet, Internet...]
+  + let's say NVA is 10.0.2.4
+=> any incoming packets that are directed to 10.0.1.0/24
+   are sent to 10.0.2.4 first.
+3. Associate Route Table
+- 'Add subnet. 10.0.1.0/24, Route Table Name
+IP Fowarding: to pass a packet to other IP
+(it does not stop there <=> black hole) 
+
+---------------------------------------------------------
+#### ExpressRoute
+collocation environment/center ~ community cloud
+Exchange provider facility
+MPLS multiprotocol label switching
+100Gbps
+- regular data migration
+- disaster recovery (for on-premise)
+layer 3, BGP
+Redundancy: ExpressRoute has two links to MSEE
+MSEE: Microsoft Enterprise Edge Routers
+Azure/Microsoft 365/Dynamics 365
+All regions in one Geo
+ExpressRoute to Amsterdam -> North+West Europe
+ExpressRoute Premium -> Global except domestic
+ExpressRoute Global Reach -> connect multiple on-premises
+site-to-site = ExpressRoute + VPN Gateway link
+need 2 Gateways - VPN Gateway + ExpressRoute Gateway
+ExpressRoute - 3 way conection
+1 CloudExhante (colocate?) layer 2/3
+2 Point-to-point. layer 2/managed layer 3
+3 Any-to-any (IPVPN). many VNets to many on-premise. WAN. MPLS. layer 3
+4 NO site-to-site. but can do that in PowerShell
+
+---------------------------------------------------------
+#### Azure Virtual WAN
+many on-premise + many VNets
+on-premise -> (regional Hub) -> Azure VNet
+(resional Hub 1) = (regional Hub 2) by Azure backbone
+site-site and point-to-site by VPN Gateway + ExpressRoute
+Basic : site-site by VPN Gateway only
+Standard : ER-p2s. 
+
+---------------------------------------------------------
+#### VPN Gateway
+IPSec: encription IKES: authentication, 
+minimun 2 VMs, can be in Availability Zones
+1. VNet, Subnet, DNS server (internal)
+2. AzureGatewaySubnet
+3. Create VPN Gateway
+4. Create Local Network Gateway. This is on Azure
+5. VPN Device (on-premise)
+6. VPN Connection
+No overlap in IP Address space
+GatewaySubnet /27 or /28. No other VM on GatewaySubnet
+(subnet required for Bastion. no for Load Balancer)
+VPN Gateway
+- Name, Region, VPN/ExpressRoute, Route/Policy-base
+- SKU:VpnGW1 (number of tunnels), Generation
+- active-active, BGP ASN
+Route-Base: point-site/inter-VNet/multiple-site-site/ExpressRoute
+Use IP forwarding, Route table to direct packet to tunnel. any-to-any
+Policy base cannot do point-site. only IKEv1
+combination of address prefixes between VNet and on-premise
+need an access list. SKU: Basic only. one tunnel. site-to-site only
+SKU: VPNGw1-5, 650Mbps-10GBps
+Local Network Gateway is in on-premise, but need to specify on Azure
+IP Address of VPN device. Must be public IP
+Address space (aka Address prefix aka IP address mask) of on-pre machines.
+VPN Device (on on-pre) Cisco, Juniper, Ubiquiti, Barracuda
+need Shared Key (PSK? one can create yourself),
+Public IP. VPN device configuration script
+Add connection => Portal: when two VNets are on same subscription
+active-standby 10-15s, 60-90s
+
+---------------------------------------------------------
+#### VNet Peering
+- Regional/Virtual VNet Peering
+- Global VNet Peering (but not from Azure Goverment)
+For Azure Goverment, regional peering only
+- Microsoft Backbone Network. No encryption. No Gateway
+- No downtime
+one Gateway for one VNet 
+Gateway Transit : VNet -> on-premises (not VNet-VNet)
+set "Allow Gateway Transit" at Hub VNet
+set "Use remote Gateways" at Spoke VNets
+-> can have no Gateway for itself any more 
+Peering is nontransitive
+User Defined Route : eneable next hop (IP address)
+Service Chaining
+Status : Initiated Connected
+Use only Microsot Backbone. Private IP addressesu
+Network Contributor
+no overlap in address space
+x 10.0.0.0/16 - 10.0.0.0/17
+x 10.0.0.0/16 - 171.16.0.0/16
+When there are two connections, peering and VPN Gateway,
+traffict flows through Peering.
+
+---------------------------------------------------------
+#### Azure Application Gateway
+a load balancer for web applications. URL base
+backedn: VM, VM scaleset, Azure App Service, on-premise
+behind a browser, simple round-robin (not load considered)
+application latyer (layer 7). hostname + path
+(Azure Load Balancer, layer 4, source IP address-base) 
+HTTP, HTTPS, HTTP/2, WebSocket
+- FireWall
+- SQL injection protection
+- Encryption
+- Autoscaling
+Routing to backend
+Path-base: contoso.com/images/*, contoso.com/video/*
+multiple sites: contoso.com, fabrikam.com
+register multiple DNS (CNAME) in App Gateway -> separate listners
+(multi-tenant applications)
+- Redirection to another site
+- Rewrite HTTP headers
+- Custom Error Pages
+1. Create Application Gateway
+   + One Frontend IP address (can be one public and one private)
+   + listner (protocol/port/host/IP). Basic (path), Multi-sate
+     - TLS/SSL termination
+   + routing rule: bind listner to backend, encript or not
+   + backend pool:VM, VMscaleset, Azure App Service, on-premise
+   + firewall: Open Web Application Security Project (OWASP)
+   + Health probe:HTTP only 200 and 399
+Web Application Firewall (WAF)
+   - SQL injection, Cross-site scripting, command injection
+   - HTTP requst smuggling, HTTP response splitting
+   - remote file inclusion
+   - Bots, crawlers, scanners, HTTP protocol violations, anomalies
+OWASP: Core Rule Set (CRS), WAF CRS 2.2.9/3.0
 ---------------------------------------------------------
 #### Azure Load Balancer
 five tuple hash: IPx2/Portx2/protocol
@@ -339,10 +681,6 @@ Private Endpoint: per resource (Storage account of a user)
 'private' means private IP only.
 Service Endpoint: per service (all Storage account of users)
 Service Endpoint: target IP (=IP of service) are public
----------------------------------------------------------
-
-
-
 =========================================================
 ### Idendity 
 ---------------------------------------------------------
@@ -447,7 +785,6 @@ e.g. Resource Group -> Access control (IAM)
 3. Scope [management group|subscription|RG|resource]
 4. Role Assignment: go RG -> IAM -> security principal + role
 Azure RBAC: additive, not multiplicative  
-
 
 =========================================================
 ### Monitor
@@ -574,11 +911,62 @@ DPM: Data Protection Manager
 Soft delete of backup data
 it is not really deteleted, but kept 14 days
 
----------------------------------------------------------
-
-
 =========================================================
 ### Operation
+---------------------------------------------------------
+#### Azure PowerShell
+Ubuntu Devian apt-get
+RedHat CentOS yum
+SUSE zypper
+Fedora dnf
+Mac Homebrew
+brew install --cask powershell
+pwsh
+commandlet cmdlet
+Verb-Object
+Get-Module (like a library)
+Az : Azure PowerShell cmdlet official name, ~hundreds cmd
+PowerShell Gellery
+Install-Module -Name Az -Scope CurrentUser -Repository PSGallery -Force
+Update-Module -Name Az
+(connect so Azure)
+
+Connect-AzAccount
+Set-AzContext -Subscription ''
+Get-AzResourceGroup
+Get-AzResourceGropu | Format-Table
+New-AzResourceGropu -Name NAME -Location LOCATION
+Get-AzResource | Format-Table
+Get-AzResource -ResourceGropuName ExerciseResource
+New-AzVm -ResourceGropuName $RG -Name $VM1 -Credential $OBJ
+         -Location $LOCATION -Image $IMAGE
+Remove-AzVM
+Start-AzVM
+Stop-AzVM
+Restart-AzVM
+Update-AzVM
+Get-AzVM -Status
+
+$ResourceGroupName = "ExerciseResources"
+$vm = Get-AzVM  -Name MyVM -ResourceGroupName $ResourceGroupName
+$vm.HardwareProfile.vmSize = "Standard_DS3_v2"
+Update-AzVM -ResourceGroupName $ResourceGroupName  -VM $vm
+(update the variable 'vm')
+
+@vm | Get-AzPulicIpAddress
+Integrated Scripting Environment
+.ps1
+variables: $loc = "East US"
+$adminCredential = Get-Credential
+New-AzResourceGroup -Name "RG" -Location $loc
+loops: For ($i=1; $i-lt 3; $i++)
+{
+$i
+}
+script.ps1 -size 5 -location "East US"
+param([int]$size, [sgting]$location)
+UbuntuLTS (longterm support)
+
 
 ---------------------------------------------------------
 #### Move / Moving Resources / Azure Resource Mover
@@ -616,7 +1004,18 @@ Locks: Sub/RG/Resource: when on RG, cannot scale App
 
 Tags:  Sub/RG/Resource
 Read-Only RG: can add from outside. 
+
+(Moving Resources)
+- another virtual network
+- another resource gropu
+- another subscription
+- another region
+Deleting resource group
++ check if other RG uses resource in
+Remove-AzResourceGropu -Name "ContosoRG01"
+Quota by _Subscription_
 ---------------------------------------------------------
+
 #### Azure CLI
 az vm restart -g RG -n VM1
 Azure Cloud Shell <- Azure Portal |_>
@@ -675,6 +1074,7 @@ Local Configuration Manager applies desired state
 1. poll 2. Download 3. Compare 4. Update
 Puppet Agent: configuration management tool from Puppet. Open.
 ---------------------------------------------------------
+
 #### Desired State Configuration
 DSC is part of configuration management
 keep software installed in a VM constant.
@@ -692,7 +1092,7 @@ by running command from your local (=your laptop) PowerShell.
 need Automation Account,
 separately from MicroSoft account to log in Azure Portal.
 
-##### Glossary
+##### Glossary for DSC
 *WMF* 'Windows Management Framework'. contains *WinRM* + *PowerShell*.
 
 *WinRM*  Windows Remote Management.
@@ -720,364 +1120,7 @@ software.
  place.
 
 
-=========================================================
-
 ---------------------------------------------------------
-#### Azure Application Gateway
-a load balancer for web applications. URL base
-backedn: VM, VM scaleset, Azure App Service, on-premise
-behind a browser, simple round-robin (not load considered)
-application latyer (layer 7). hostname + path
-(Azure Load Balancer, layer 4, source IP address-base) 
-HTTP, HTTPS, HTTP/2, WebSocket
-- FireWall
-- SQL injection protection
-- Encryption
-- Autoscaling
-Routing to backend
-Path-base: contoso.com/images/*, contoso.com/video/*
-multiple sites: contoso.com, fabrikam.com
-register multiple DNS (CNAME) in App Gateway -> separate listners
-(multi-tenant applications)
-- Redirection to another site
-- Rewrite HTTP headers
-- Custom Error Pages
-1. Create Application Gateway
-   + One Frontend IP address (can be one public and one private)
-   + listner (protocol/port/host/IP). Basic (path), Multi-sate
-     - TLS/SSL termination
-   + routing rule: bind listner to backend, encript or not
-   + backend pool:VM, VMscaleset, Azure App Service, on-premise
-   + firewall: Open Web Application Security Project (OWASP)
-   + Health probe:HTTP only 200 and 399
-Web Application Firewall (WAF)
-   - SQL injection, Cross-site scripting, command injection
-   - HTTP requst smuggling, HTTP response splitting
-   - remote file inclusion
-   - Bots, crawlers, scanners, HTTP protocol violations, anomalies
-OWASP: Core Rule Set (CRS), WAF CRS 2.2.9/3.0
-   
----------------------------------------------------------
-#### Azure App Service Plan
-Server farm. Tied to a Region
-Web App and App Service Plan must be in a sam region
-- Region/number of VM/size of VM
-Free/Shared: not scale out. VM shared by other customer Apps. no SLA
-Basic: no scaling. Dev/Test
-Standard/Premium/Isolated: can be product level
-multiple Apps share one/more VM
-deploy slots share one/more VM
-diagnostics, backup also on same VM
-5 Apps on 5 VMs => scales simultaneously
-'Isolated' : app is resorce intensice/scale independently/in other geo
-Scale up: change plan. can scale down as well. a few seconds
-Scale out: number of VM. < 30 (Isolated. VM <100) 
-Autoscaling: VM instance-base. Scale-out (OR). Scale-in (AND)
-Metric/Schedule
-can scale in to zero.
-Alert -> e-mail, webhook
-
----------------------------------------------------------
-#### Azure Load Balancer
-TCP/UDP
-internal/public
-Public Load Balacer
-Public IP (TCP/80) of LB->(map) -> Private IPs of VMs
-Internal Load Balacer
-Private IPs of VMs -> LB -> (map) -> Private IPs of VMs on other subnet
-all has to be in one VNet
-- multi tier application = Web Frontene + SQL
-- line of business = important for business
-- SOA = service oriented architecture
-SKU: Basic/Standard
-HTTPS, Availability Zones (backend), 99.99: only for Standard
-backend pools: must be on one VNet. <1000 VMs
-can VNet host VMs in different regions? => No. Single region
-(so, no Region-pair, but Availability Zones are okay)
-Load Balancer Rules: equal distribution, 5-tuple hash
-Frontend/Backend/Protocaol/Port/Backend/HealthProbe/SessionPersistence
-LB public IP -> NAT rules -> TCP 3389 (RDP) to specific VM
-Session Persistence
-5-tuple (Source IP/port/Destination IP/port/protocol)
-protocol is common
-5-tuple -> 3 tuple or 2 tuple
-look at source IP/port and protocol (3) or source IP/port only (2)
-- shopping cart
-Health Probe
-1. Create one.
-   + HTTP poll every 15 sec, 'HTTP 200' withing 31 sec. backend URI
-   + TCP: if connection is successful
-Basic: VMs in backend pool must be in scaleset/availability set
-Standard: single VMs can be added to backpool
----------------------------------------------------------
-#### Private Endpoint -> Private Link
-PaaS
----------------------------------------------------------
-#### Service Endpoint
-Endpoint of VNet (private IP) -> Azure service
-now one can use Azure service from VNet
-keep Azure serivice out of reach from public IP
-service traffic does not need to go to UDR
-1. Create Service Endpoint
-   + which service?
-   - Storage
-   - SQL Database/Warehouse/PostgreSQL/MySQL/CosmosDB
-   - Key Vault
-   - Service Bus/Event Hubs
----------------------------------------------------------
-#### User Defined Route Table
-System Route : default route inside a VNet, between Subnets
-User Defined Route: define NVA as a next hop
-1 route table to many subnets
-one subnet can have only one route table
-NVA are VMs
-1. Create Routing Table
-- Name, Subscription, RG, location, 
-- VNet route propagation
-  + current subnet route is automatically added to table
-2. Create Custom Route ('Add route')
-- Name
-- Address prefix (= subnet mask) 10.0.1.0/24
-- Next hop : [VNet Gateway, NVA, VNet, Internet...]
-  + let's say NVA is 10.0.2.4
-=> any incoming packets that are directed to 10.0.1.0/24
-   are sent to 10.0.2.4 first.
-3. Associate Route Table
-- 'Add subnet. 10.0.1.0/24, Route Table Name
-IP Fowarding: to pass a packet to other IP
-(it does not stop there <=> black hole) 
-
----------------------------------------------------------
-#### ExpressRoute
-collocation environment/center ~ community cloud
-Exchange provider facility
-MPLS multiprotocol label switching
-100Gbps
-- regular data migration
-- disaster recovery (for on-premise)
-layer 3, BGP
-Redundancy: ExpressRoute has two links to MSEE
-MSEE: Microsoft Enterprise Edge Routers
-Azure/Microsoft 365/Dynamics 365
-All regions in one Geo
-ExpressRoute to Amsterdam -> North+West Europe
-ExpressRoute Premium -> Global except domestic
-ExpressRoute Global Reach -> connect multiple on-premises
-site-to-site = ExpressRoute + VPN Gateway link
-need 2 Gateways - VPN Gateway + ExpressRoute Gateway
-ExpressRoute - 3 way conection
-1 CloudExhante (colocate?) layer 2/3
-2 Point-to-point. layer 2/managed layer 3
-3 Any-to-any (IPVPN). many VNets to many on-premise. WAN. MPLS. layer 3
-4 NO site-to-site. but can do that in PowerShell
-
----------------------------------------------------------
-#### Azure Virtual WAN
-many on-premise + many VNets
-on-premise -> (regional Hub) -> Azure VNet
-(resional Hub 1) = (regional Hub 2) by Azure backbone
-site-site and point-to-site by VPN Gateway + ExpressRoute
-Basic : site-site by VPN Gateway only
-Standard : ER-p2s. 
-
----------------------------------------------------------
-#### VPN Gateway
-IPSec: encription IKES: authentication, 
-minimun 2 VMs, can be in Availability Zones
-1. VNet, Subnet, DNS server (internal)
-2. AzureGatewaySubnet
-3. Create VPN Gateway
-4. Create Local Network Gateway. This is on Azure
-5. VPN Device (on-premise)
-6. VPN Connection
-No overlap in IP Address space
-GatewaySubnet /27 or /28. No other VM on GatewaySubnet
-(subnet required for Bastion. no for Load Balancer)
-VPN Gateway
-- Name, Region, VPN/ExpressRoute, Route/Policy-base
-- SKU:VpnGW1 (number of tunnels), Generation
-- active-active, BGP ASN
-Route-Base: point-site/inter-VNet/multiple-site-site/ExpressRoute
-Use IP forwarding, Route table to direct packet to tunnel. any-to-any
-Policy base cannot do point-site. only IKEv1
-combination of address prefixes between VNet and on-premise
-need an access list. SKU: Basic only. one tunnel. site-to-site only
-SKU: VPNGw1-5, 650Mbps-10GBps
-Local Network Gateway is in on-premise, but need to specify on Azure
-IP Address of VPN device. Must be public IP
-Address space (aka Address prefix aka IP address mask) of on-pre machines.
-VPN Device (on on-pre) Cisco, Juniper, Ubiquiti, Barracuda
-need Shared Key (PSK? one can create yourself),
-Public IP. VPN device configuration script
-Add connection => Portal: when two VNets are on same subscription
-active-standby 10-15s, 60-90s
-
-
----------------------------------------------------------
-#### VNet Peering
-- Regional/Virtual VNet Peering
-- Global VNet Peering (but not from Azure Goverment)
-For Azure Goverment, regional peering only
-- Microsoft Backbone Network. No encryption. No Gateway
-- No downtime
-one Gateway for one VNet 
-Gateway Transit : VNet -> on-premises (not VNet-VNet)
-set "Allow Gateway Transit" at Hub VNet
-set "Use remote Gateways" at Spoke VNets
--> can have no Gateway for itself any more 
-Peering is nontransitive
-User Defined Route : eneable next hop (IP address)
-Service Chaining
-Status : Initiated Connected
-Use only Microsot Backbone. Private IP addressesu
-Network Contributor
-no overlap in address space
-x 10.0.0.0/16 - 10.0.0.0/17
-x 10.0.0.0/16 - 171.16.0.0/16
-When there are two connections, peering and VPN Gateway,
-traffict flows through Peering.
-
-----
-#### ARM Tempalte
-Get-AzSubscription
-$context = Get-AzSubscription -SubscriptionId {Your subscription ID}
-Set-AzContext $context
-Set-AzDefault -ResourceGroupName learn-09e42320-c4cd-434a-87a2-dcfa7246a4f2
-
-----
-#### Virtual Machine Extention
-- Extensions
-- Custom Script
-- Desired State Configuration (DSC)
-
-- Extensions
-small aplications. post-deployment configuration.
-automation task. software installation. anti-virus protection.
-like an autoexec.bat.
-- Custom Script Extensions (CSE)
-Azure Portal -> Extensions -> PowerShell script
-Set-AzVmCustomScriptExtentions -FileUri https://scriptstore.blob..
-Timeout: 90 min; Dependencies;
-- Desired State Configuration
-DSC is a PowerShell Script *.ps1
-Configuration IISInstall{
- Node "localhost"{
-  WindowsFeature IIS{ # resource block
-   Ensure = "Present"
-   Name = 'Web-Server"
-}}}
-
-----
-#### Virtual Machine Scale Set
-Unplanned Hardware Maintenance: live migration, low performance
-Unexpected Downtime: automatic heal, reboot
-Planned Mainenance: no impact
-availability set: VM should habe managed disks. 99.95%
-fault domain  
-update domain <= 20 
-availability zones: 99.99%
-single VM + Premium disks: 99.9% 
-Azure Load Balancer: layer 4 (transport, TCP, UDP)
-Azure Application Gateway: layer 7 (application, HTTP, X500)
-                           SSL termination
-scale set < 1000
-scale set with custom image < 600
-Azure Spot Instance: 
-ScaleSetVM: default. VMs come with it.
-VM: empty Scale set. VM to be added manually
-
-
-----
-#### Virtual Machine
-1. network
-2. Region
-3. Size
-4. Storage/OS
-       compute: webserver, application server, network appliance
-memory: SQL
-OS system disk : SATA
-data disk : SCSI
-Temp. disk : /dev/sdb /mnt
-UbuntuLTS (longterm support)
-monitor, agent, script, extention
-window:rdp
-linux:ssh PuTTY
-Azure Bastion:PaaS RDP or SSH
-WinRM (Windows Remote Management): command-line session
-non-interactive PowerShell scripts. port 5986 (NSG!)
-1. Create Key Bault
-2. Create self-signed certificate
-3. Upload self-signed certificate to Key vault
-4. Identify URL of certificate
-5. Refer URL in VM configuration
-Linux VM : SSH = encripted
-public Key => VM
-private Key => your laptop
-SSH-RSA 2048bit
-when you create a VM, automatically created
-NIC+NSG/VNet/Subnet/Disks
-defaul NSG 1000 RDP TCP 3389 Allow for inbound? 
-Virtual machine Scale Set:built-in update domate, 
-20% of machines updated at once.
-
-==========
-# 30 days
-==========
-#### Azure PowerShell
-Ubuntu Devian apt-get
-RedHat CentOS yum
-SUSE zypper
-Fedora dnf
-Mac Homebrew
-brew install --cask powershell
-pwsh
-commandlet cmdlet
-Verb-Object
-Get-Module (like a library)
-Az : Azure PowerShell cmdlet official name, ~hundreds cmd
-PowerShell Gellery
-Install-Module -Name Az -Scope CurrentUser -Repository PSGallery -Force
-Update-Module -Name Az
-(connect so Azure)
-
-Connect-AzAccount
-Set-AzContext -Subscription ''
-Get-AzResourceGroup
-Get-AzResourceGropu | Format-Table
-New-AzResourceGropu -Name NAME -Location LOCATION
-Get-AzResource | Format-Table
-Get-AzResource -ResourceGropuName ExerciseResource
-New-AzVm -ResourceGropuName $RG -Name $VM1 -Credential $OBJ
-         -Location $LOCATION -Image $IMAGE
-Remove-AzVM
-Start-AzVM
-Stop-AzVM
-Restart-AzVM
-Update-AzVM
-Get-AzVM -Status
-
-$ResourceGroupName = "ExerciseResources"
-$vm = Get-AzVM  -Name MyVM -ResourceGroupName $ResourceGroupName
-$vm.HardwareProfile.vmSize = "Standard_DS3_v2"
-Update-AzVM -ResourceGroupName $ResourceGroupName  -VM $vm
-(update the variable 'vm')
-
-@vm | Get-AzPulicIpAddress
-Integrated Scripting Environment
-.ps1
-variables: $loc = "East US"
-$adminCredential = Get-Credential
-New-AzResourceGroup -Name "RG" -Location $loc
-loops: For ($i=1; $i-lt 3; $i++)
-{
-$i
-}
-script.ps1 -size 5 -location "East US"
-param([int]$size, [sgting]$location)
-UbuntuLTS (longterm support)
-
-
----
 #### ARM Template
 {
 "$schema"
@@ -1091,78 +1134,28 @@ UbuntuLTS (longterm support)
 quick start template
 if identical ARMT executed twice, nothing happens
 
----
-#### Azure Kubernetes Service
-not PaaS. only partly.
+Get-AzSubscription
+$context = Get-AzSubscription -SubscriptionId {Your subscription ID}
+Set-AzContext $context
+Set-AzDefault -ResourceGroupName learn-09e42320-c4cd-434a-87a2-dcfa7246a4f2
+=========================================================
+END
+=========================================================
 
-
----
-#### Azure Container Registry
-az group create -n RG --location westeurope
-az acr create -n NAME_UNIQ -sku Premium
-- edit Dockerfile
-az acr build --registry NAME_UNIQ --image hello:v1 .
-az acr build repository list -n NQME_UNIQ 
-credential: Azure AD (RBAC) | admin for registry
-az acr update -n NAME_UNIQ --admin-enabled true
-az acr credential show -n NAME_UNIQ => username, password
-az acr replication create
-az acr replication list
-can automate build and deploymen
-security, credential, encryption > Docker Hub
-webhook
-az acr task create
-1. GitHub monitored by ACR (task)
-   -> ACR build an image -> store
-2. webhook by ACR (image updated)
-   -> subscribed by App and Service -> App pull -> App restart
-
-
----
-#### Azure Container Instances
-Persistent Storage : need Azure Files Share 
-az container create -g RG -n mycontainer --image mcr.microsoft.com/
-DNS name label: can create new, but must be unique $RANDOM
-az container show --query "{FQDN:ipAddress.fqdn}"
-az container show --query "{ProvisioningState:provisioningState}"
-http://aci-demo-24331.eastuslazurecontainer.io
-restart policy : Always|Never|OnFailure 
---environment-variables COSMOS_DB_ENDPOINT=$COSMOS_DB_ENDPOINT
---source-environment-variables COSMOS_DB_ENDPOINT=$COSMOS_DB_ENDPOINT
-stateless service
-file share
-az storage account create
-az storage account show-connection-string
-az storage share create -n NAME
-az storage account keys list
-az storage file list -s aci-share-demo -o table
-az storage file download -s aci-share-demo -p FILENAME
-az container logs
-az container attach
-az container exec
-az monitor metrics list --resource CONTAINER_ID --metrics CPUUsage
-init Container: works at the begining, 
-set account, run script, configure database, etc. 
-same hardware with other workload containers
-
----
-#### Moving Resources
-- another virtual network
-- another resource gropu
-- another subscription
-- another region
-Deleting resource group
-+ check if other RG uses resource in
-Remove-AzResourceGropu -Name "ContosoRG01"
-Quota by _Subscription_
+   
 
 
 
----
+==========
+# 30 Days Learn it
+==========
+
+
+---------------------------------------------------------
 #### Azure API Management Service
 Azure API Gateway : an instance of API Management Service
 
----
+---------------------------------------------------------
 #### Azure App Service
 PaaS
 deploy slot
@@ -1174,7 +1167,7 @@ az webapp up (automatic creation of Web App)
 az webapp deployment source config-zip
 
 
----
+---------------------------------------------------------
 #### Web App
 F1/D1: single instance (free/shared level)
 B1:2 instance
@@ -1190,7 +1183,7 @@ scale in rule 'and'
 metric | scale to a specific instance count (schedule)
 
 
----
+---------------------------------------------------------
 #### VM Scale Set
 default : 2 instances, 1 loadbalancer
 health probe
@@ -1201,7 +1194,7 @@ health probe
 low-priority scale set:automatic shutdown, 80% cheaper
 
 
----
+---------------------------------------------------------
 #### Redis
 transaction MULTI/EXEC/DISCARD
 do not support rolllback?
@@ -1213,7 +1206,7 @@ QueueCommand()
 Commit()
 
 
----
+---------------------------------------------------------
 #### Azure Function
 timeout 5 min, max 10 min.
 cannot execute a function that takes > 10 min
@@ -1225,7 +1218,7 @@ max 200 instance?
 payasyougo : intermittant, autoscaling
 App Service: continuous (not severless)
 
----
+---------------------------------------------------------
 #### Azure Event Hub
 => mostly for analysis or IoT | Azure Steam Analytics
 AMQP : initial overhead high, first transmission
@@ -1246,19 +1239,19 @@ az stroage container create
 default partition: 4
 max publication size : 1 MB
 
----
+---------------------------------------------------------
 #### Azure Backup
 SQL Database, point-in-time backup
 Blob stored in RAGRS
 
 
----
-#### Cosmos DB (~Cloud Spanner)
+---------------------------------------------------------
+#### Azure Cosmos DB (~Cloud Spanner)
 NoSQL, global
 MongoDB/Cassandra/Gremlin, JSON,XML
 Multimaster, 99.999%
 
----
+---------------------------------------------------------
 #### Storage Account
 hot/cool(30d)/archive(180d) need StorageV2+Blob storage
 GRS: GR + LRS
@@ -1270,6 +1263,7 @@ GRS: cannot read at zonal shutdown.
 RAGRS: can read at zonal shutdown. 
 BlobStorage: does not have ZRS
 price: Gp2 and Blob same price
+---------------------------------------------------------
 ---
 #### VNet Peering
 - global, over subscritpions, over regions.
@@ -1282,7 +1276,7 @@ SMB  = TCP at 445
 Gateway Transit: if other VNet has VPN Gateway, 
 can reach VNets connected that Gateway 
 
----
+---------------------------------------------------------
 #### Virtual Network
 NIC has to be in the same _Subscription_ and _Region_ with VNet 
 VM and VNet must be in a same region, 
@@ -1344,16 +1338,7 @@ it can control traffic inside a subnet,
 resource-to-resource.
 
 
----
-Azure Monitor : Performance
-Azure Security Center : Security/Compliznce, summary
-   can install agent to Iaas/Paas 
-Azure Sentinel : Network Security in more detail
-   automated action. playbook/notebook, enterprise
-   Log Analytics, workspace, connectors
-
-Application Insights:
-  instrumentation = install agent
+---------------------------------------------------------
 
 ---
 Network:
@@ -1363,8 +1348,7 @@ Network:
 - Azure DNS
 - Azure Bastion
 
-
----
+---------------------------------------------------------
 Firewall : stateful, (multiple) static IP, SNAT/DNAT
 unrestricted scalability, loggging, Azure Monitor
 high-availability, Availability Zones
@@ -1380,7 +1364,7 @@ log -> Azure Monitor
 3. Application rules : full name. outbound
 
 
----
+---------------------------------------------------------
 Azure Monitor : Azure + on-premise, metric + log
 insights/analysis/integrate/resopnd/visualize
 insights: app, vm, container
@@ -1392,26 +1376,27 @@ SQL: enable diagnostics
 vm: add agent
 kusto:  query language
 
-----
+Azure Monitor : Performance
+Azure Security Center : Security/Compliznce, summary
+   can install agent to Iaas/Paas 
+Azure Sentinel : Network Security in more detail
+   automated action. playbook/notebook, enterprise
+   Log Analytics, workspace, connectors
+
+Application Insights:
+  instrumentation = install agent
+
 Azure Monitor Log -> store in Log Analytics Workspace
 VM syslog, windows event log
 VM insights 
 
-
-
----
 Azure Alert <- Azure Monitor
 metric alert : CPU 95%
 activity log alert : resource deleted
 log alert : 404 error
 
-
-
----
-Azure DNS
-
----
-Azure Queue Storage 
+---------------------------------------------------------
+#### Azure Queue Storage 
 REST base. store millions of messages.
 
 Azure Service Bus
@@ -1435,10 +1420,8 @@ Namespace = endpoint bicycleService.servicebus.windows.net
 access key 
 Namespace + access key = connection string
 await SendMessageAsync (can send while waiting)
-      <
 
-
----
+---------------------------------------------------------
 #### Azure Policy, RBAC
 Scope
 Policy : MG/SUB/RG : multiplicable
@@ -1449,17 +1432,14 @@ when no-allowed: VNet
 - cannot add address space
 - but can move an existing VNet from other RG
 
-
-
-
----
-Storage Account
+---------------------------------------------------------
+#### Storage Account
 Data in transitit : Client-Side Encryption, HTTPS, SMB 3.0
 Shared Access Signature : delegated access, time interval
 Authorization: RBAC,Sshared Key, SAS, Anonymous access (web contents)
 
----
-Resource Lock
+---------------------------------------------------------
+#### Resource Lock
 - Delete/ReadOnly
 - can move anywhere, unless it is not deleted
 + storage may not be read even with ReadOnly
@@ -1469,11 +1449,7 @@ Resource Lock
 
 Azure SQL Database is a PaaS. 
 
-
----
-END
-
----
+---------------------------------------------------------
 #### Azure Kubernetes Service
 Node pool > Node > Deployment (YAML) > Pods > Container
 YAML: Manifest
@@ -1514,7 +1490,7 @@ nodes are on internal VNet subnet. pods are not on VNet.
 CNI: pods are on the Vnet subnet
 User need to update Kubernetes 
 
----
+---------------------------------------------------------
 ####  Container Group of Azure Container Instances
 Containers in Containers group ~ Containers Kubernetes pods 
 Linux Only
@@ -1528,7 +1504,7 @@ Dedployment
 1. ARM template (recommended)
 2. YAML 
 
----
+---------------------------------------------------------
 #### Storage for Virtual Machine
 - standard disk = HDD. Blobk, Page, 
 - premium disk = SDD. Page Blob only
@@ -1550,6 +1526,8 @@ az vm disk attach \
   --size-gb 64 \
   --sku Premium_LRS \
   --new
+
+---------------------------------------------------------
 
 (how to get public ID)
 az vm show
@@ -1628,13 +1606,3 @@ az vm extension set \
   --publisher Microsoft.Azure.Extensions \
   --settings '{"fileUris":["https://raw.githubusercontent.com/MicrosoftDocs/mslearn-add-and-size-disks-in-azure-virtual-machines/master/add-data-disk.sh"]}' \
   --protected-settings '{"commandToExecute": "./add-data-disk.sh"}'
-
----
-## Topics to note
-- NanoDegree Lab System
-- Load balancer
-- Virtual Network
-- Virtual Private Network and VPN Gateway (+ Express Route)
-- Application Gateway
-- VM and App Server
-- Network Security Group / Application Security Group
