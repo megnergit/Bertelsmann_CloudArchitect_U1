@@ -82,7 +82,7 @@ Virtual machine Scale Set:built-in update domate,
 not PaaS. only partly.
 
 ---------------------------------------------------------
-#### Azure App Service Plan
+#### Azure App Service Plan (PaaS)
 Server farm. Tied to a Region
 Web App and App Service Plan must be in a sam region
 - Region/number of VM/size of VM
@@ -100,6 +100,27 @@ Autoscaling: VM instance-base. Scale-out (OR). Scale-in (AND)
 Metric/Schedule
 can scale in to zero.
 Alert -> e-mail, webhook
+CI/CD: Azure DevOps: build, release
+create web app resource
+windows -> monitor on -> Application Insights
+az webapp up (automatic creation of Web App)
+az webapp deployment source config-zip
+
+---------------------------------------------------------
+#### Web App
+F1/D1: single instance (free/shared level)
+B1:2 instance
+S1/P1: autoscaling
+App Service Plan
+Standard <10 0.40/hr
+Premium  <20 0.80/hr 99.95%
+Isolated <100 1.60/hr 99.95%
+Metric: Disk Queue, HTTP requests
+Schedule
+scale out rule 'or'
+scale in rule 'and'
+metric | scale to a specific instance count (schedule)
+
 
 ---------------------------------------------------------
 #### Azure Container Registry
@@ -150,6 +171,17 @@ init Container: works at the begining,
 set account, run script, configure database, etc. 
 same hardware with other workload containers
 
+
+
+---------------------------------------------------------
+#### VM Scale Set
+default : 2 instances, 1 loadbalancer
+health probe
+* az group create
+* az vmss create
+* az network lb probe create (ping)
+* az network lb rule create 
+low-priority scale set:automatic shutdown, 80% cheaper
 
 ---------------------------------------------------------
 #### Windows Virtual Machine
@@ -1110,7 +1142,7 @@ restrictions are mostly on hardware (*).
 
 *Azure DSC* : it also sets restrictions when a VM is created, like Azure
 Policy, but the DSC restrictions are exclusively on software (*). The
-business of Azure Policy and ARM Template are to create (=deploy)
+aabusiness of Azure Policy and ARM Template are to create (=deploy)
 VMs. The business of DSC, however, includes monitoring (=watch) the
 status of the software combination. DSC intervenes (install/remove
 software) when unwanted changes are made in the combination of the
@@ -1118,7 +1150,6 @@ software.
 
 *Azure Blueprint* : Use all of them above (hardware+software) from one
  place.
-
 
 ---------------------------------------------------------
 #### ARM Template
@@ -1138,60 +1169,14 @@ Get-AzSubscription
 $context = Get-AzSubscription -SubscriptionId {Your subscription ID}
 Set-AzContext $context
 Set-AzDefault -ResourceGroupName learn-09e42320-c4cd-434a-87a2-dcfa7246a4f2
+```
 =========================================================
 END
 =========================================================
 
-   
-
-
-
-==========
-# 30 Days Learn it
-==========
-
-
 ---------------------------------------------------------
 #### Azure API Management Service
 Azure API Gateway : an instance of API Management Service
-
----------------------------------------------------------
-#### Azure App Service
-PaaS
-deploy slot
-CI/CD
-Azure DevOps: build, release
-create web app resource
-windows -> monitor on -> Application Insights
-az webapp up (automatic creation of Web App)
-az webapp deployment source config-zip
-
-
----------------------------------------------------------
-#### Web App
-F1/D1: single instance (free/shared level)
-B1:2 instance
-S1/P1: autoscaling
-App Service Plan
-Standard <10 0.40/hr
-Premium  <20 0.80/hr 99.95%
-Isolated <100 1.60/hr 99.95%
-Metric: Disk Queue, HTTP requests
-Schedule
-scale out rule 'or'
-scale in rule 'and'
-metric | scale to a specific instance count (schedule)
-
-
----------------------------------------------------------
-#### VM Scale Set
-default : 2 instances, 1 loadbalancer
-health probe
-* az group create
-* az vmss create
-* az network lb probe create (ping)
-* az network lb rule create 
-low-priority scale set:automatic shutdown, 80% cheaper
 
 
 ---------------------------------------------------------
