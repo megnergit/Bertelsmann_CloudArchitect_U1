@@ -4,6 +4,60 @@
 =========================================================
 ### Compute
 ---------------------------------------------------------
+#### Azure Kubernetes Service
+Node pool > Node > Deployment (YAML) > Pods > Container
+YAML: Manifest
+node : VM
+nodes in a Nodepool are all identical
+pods in a Deployments are all identical. manged by kubernetes
+AKS Cluster two types of nodes
+- Azure managed nodes : control plane. orchestration. (free) 
+- Customer managed nodes : run apps. agend nodes
+kubelet: receives orchestration requests
+kube-proxy : on each node. route network traffic
+container runtime : containerd. to talk to storage and network
+nodes -> virtual network (kube-proxy takes care)
+Services: groups pod. provide network connectivity to pods
+- Cluster IP: internal IP inside AKS cluster. internal only
+- NodePort: can access nodes directly from outside
+- LoadBalancer: over pods
+- ExternalName: DNS entry  
+Persistent storage 
+Volumes : a pod. gone with a pod
+- Azure Disks (managed. Kubernetes Data Disk),
+  Azure Premium Storage. mounted as ReadWriteOnce. 
+  Single node
+- Azure Files, accesed by multiple nodes, SMB
+Persistent volumes : StatefulSets. managed by Kubernetes API
+  PersistentVolume. created by cluster admin
+- Azure Disk
+- Azure Files 
+Storage clases
+- default/managed-preimum/azurefile/azurefile-premium
+Scale out
+- pods (replica)
+- nodes (node count)
+Network 
+Kubenet: pods get their own IPs (to save IPs in VNet subnet),
+No talking each other,
+nodes are on internal VNet subnet. pods are not on VNet.
+CNI: pods are on the Vnet subnet
+User need to update Kubernetes 
+
+---------------------------------------------------------
+####  Container Group of Azure Container Instances
+Containers in Containers group ~ Containers Kubernetes pods 
+Linux Only
+(typical container group)
+on a  single host machine
+has a DNS name label 
+has a public IP address/Port
+has two containers, one (port 80) and other (1433, MS SQL Server)
+has two Azure File Shares as volume mounts (one for each container)
+Dedployment 
+1. ARM template (recommended)
+2. YAML 
+---------------------------------------------------------
 #### Virtual Machine Extention
 - Extensions
 - Custom Script
@@ -171,7 +225,9 @@ init Container: works at the begining,
 set account, run script, configure database, etc. 
 same hardware with other workload containers
 
-
+---------------------------------------------------------
+#### Azure API Management Service
+Azure API Gateway : an instance of API Management Service
 
 ---------------------------------------------------------
 #### VM Scale Set
@@ -205,12 +261,206 @@ PPG in one data center
 applied to availability set / VMSS
 stop VM before adding to PPG
 
+---------------------------------------------------------
+#### Azure Function
+timeout 5 min, max 10 min.
+cannot execute a function that takes > 10 min
+=> Durable Functions
+stateless. statefull -> use storage
+HTTP, queue
+max 200 instance?
+
+payasyougo : intermittant, autoscaling
+App Service: continuous (not severless)
+
+=========================================================
+### Messaging
+---------------------------------------------------------
+#### Azure Queue Storage 
+REST base. store millions of messages.
+
+Azure Service Bus
+message broker 
+Service Bus Topic : multiple subscription
+Service Bus Queue : at-most-once, FIFO, transaction (=atomic), push
+Queue Storage : need audit, >80GB
+queues: temporary storage, FIFO, single receiver
+topics: multiple subscription 
+Service Bus Queue vs Storage Queue
+256 KB | 64 KB
+at-most-once/at-least-once | -
+FIFO | FIFO (not guranteed)
+can group | -
+RBAC | -
+80GB| unlimite queue size
+ -  | log
+need SAS keys
+clients neeed
+Namespace = endpoint bicycleService.servicebus.windows.net
+access key 
+Namespace + access key = connection string
+await SendMessageAsync (can send while waiting)
+
+---------------------------------------------------------
+#### Azure Event Hub
+=> mostly for analysis or IoT | Azure Steam Analytics
+AMQP : initial overhead high, first transmission
+HTTPS : each overhead low
+replace Kafka
+Basic/[Standard]/Premium/Dedicated
+1. Create a namespace: throughput/pricing/performance metric
+az eventhubs namespace create
+2. Create event hub in the namespace: partition/rentention
+az eventhubs eventhub create
+
+3. create storage account at subscriber
+az stroage account create
+az stroage account key list
+az stroage account show-connection-string
+az stroage container create
+
+default partition: 4
+max publication size : 1 MB
+---------------------------------------------------------
+
+
 =========================================================
 ### Storage
+---------------------------------------------------------
+#### Storage Account
+Data in transitit : Client-Side Encryption, HTTPS, SMB 3.0
+Shared Access Signature : delegated access, time interval
+Authorization: RBAC,Sshared Key, SAS, Anonymous access (web contents)
+
+99.999% five nine
+
+Premium Storage
+- Dynamic CRM, Exchange Server, SAP Business Suite,
+- SQL Server, Oracle, Share Point
+- LRS only
+
+Ultra Disk - can chanbe performance, no need to restart VM
+SAP HANA
+Dv3  : cannot use Premium
+Dsv3 : can use Premium
+
+Standard SSD: small size VM, but fast storage case
+
+LRS : 3 in 3 VMs   in a data center
+ZRS : 3 in 3 Zones in a region 
+GRS : 2 in 2 Regions
+GZRS : (3 in 3 Zones) x 2 in 2 Regions
+
+RA-GRS  : second one is read-only. only for backup 
+RA-GZRS : second one is read-only. only for backup 
+
+disk 'level'
+P4    -  P80
+32GB  -  32TB
+
+
+
+---------------------------------------------------------
+#### Storage for Virtual Machine
+- standard disk = HDD. Blobk, Page, 
+- premium disk = SDD. Page Blob only
+Blob Storage (hot and cool. no archive). block blob, incremental blob
+OS Storage : system disk. C:. <4GB. image. Linux 30GB, Windows 127GB
+Temporary Storage : swap. D: 
+Data Storage : all others. persistent. < 32TB
+(All blob)
+
+senario : onpremise -> azure
+VHD (Virtual Hard Drive). Stored as page blob
+1. local disk -> VHD ('Add-AzVhd') -> Storage Account 
+2. -> connect to VM
+
+add disk to Linux VM :
+az vm disk attach \
+  --vm-name support-web-vm01 \
+  --name uploadDataDisk1 \
+  --size-gb 64 \
+  --sku Premium_LRS \
+  --new
+
+
+---
+(Making disk size larger) cannot make it smaller
+- stop VM
+az vm deallocate --resource-group --name
+az disk update  --resource-group --name --size-gb 200
+az vm start --resource-group --name
+expand particition 'diskpart' / parted / resize2fs
+
+az disk list \
+  --query '[*].{Name:name,Gb:diskSizeGb,Tier:sku.tier}' \
+  --output table
+---
+
+az configure --defaults location=eastus
+az configure --defaults group="learn-02e70cf3-d998-4177-8d30-1e12a9040db6"
+az vm create \
+  --name support-web-vm01 \
+  --image Canonical:UbuntuServer:16.04-LTS:latest \
+  --size Standard_DS1_v2 \
+  --admin-username azureuser \
+  --generate-ssh-keys
+az vm disk attach \
+  --vm-name support-web-vm01 \
+  --name uploadDataDisk1 \
+  --size-gb 64 \
+  --sku Premium_LRS \
+  --new  
+
+ipaddress=$(az vm show \
+  --name support-web-vm01 \
+  --show-details \
+  --query [publicIps] \
+  --output tsv)
+
+ssh azureuser@$ipaddress lsblk
+
+az vm extension set \
+  --vm-name support-web-vm01 \
+  --name customScript \
+  --publisher Microsoft.Azure.Extensions \
+  --settings '{"fileUris":["https://raw.githubusercontent.com/MicrosoftDocs/mslearn-add-and-size-disks-in-azure-virtual-machines/master/add-data-disk.sh"]}' \
+  --protected-settings '{"commandToExecute": "./add-data-disk.sh"}'
+
+---------------------------------------------------------
+#### Azure Cosmos DB (~Cloud Spanner)
+NoSQL, global
+MongoDB/Cassandra/Gremlin, JSON,XML
+Multimaster, 99.999%
+---------------------------------------------------------
+#### Storage Account
+hot/cool(30d)/archive(180d) need StorageV2+Blob storage
+GRS: GR + LRS
+RAGRS: GRS (one is read only. more expensive than GRS)
+GZRS: GR + ZRS
+need StorageV2
+ZRS: can read and write at zonal shutdown
+GRS: cannot read at zonal shutdown. 
+RAGRS: can read at zonal shutdown. 
+BlobStorage: does not have ZRS
+price: Gp2 and Blob same price
+
 ---------------------------------------------------------
 #### Azure Storage Explorer
 credential: SAS, connection string, or account key
 azcopy: Blob storage (SAS/key/AD), File (SAS)
+
+---------------------------------------------------------
+#### Redis
+transaction MULTI/EXEC/DISCARD
+do not support rolllback?
+DISCARD => stop
+failed => mess
+ServiceStack.Redis : C# library
+IRedisClient.CreateTransaction()
+QueueCommand()
+Commit()
+
 
 ---------------------------------------------------------
 #### Azure SQL Database
@@ -356,6 +606,100 @@ can change hot <-> cool any time
 
 =========================================================
 ### Network 
+---------------------------------------------------------
+- VPN Gateway
+- Application Gateway
+- Firewall
+- Azure DNS
+- Azure Bastion
+---------------------------------------------------------
+#### Firewall : stateful, (multiple) static IP, SNAT/DNAT
+unrestricted scalability, loggging, Azure Monitor
+high-availability, Availability Zones
+(no additional LB required. _FOR_ firewall)  
+(LB for backend still required?)
+Microsoft Threat Inteligence, list of malicious IP
+FQDN filtering HTTP/S traffic on not IP, but on name
+hub-spoke. subnet /27. Bastian, VPN Gateway
+SecOps|DevOps separation, cross subscription
+log -> Azure Monitor
+1. NAT rules : Firewall external IP (single) -> private address
+2. Network rules : TCP/UDP/ICMP(non HTTP/S)
+3. Application rules : full name. outbound
+
+---------------------------------------------------------
+#### VNet Peering
+- global, over subscritpions, over regions.
+- no gateway (no cost for gateway)
+- traffic cost
+- when one connected, the other also connected
+HTTP = TCP at 80
+RDP  = TCP at 3389
+SMB  = TCP at 445 
+Gateway Transit: if other VNet has VPN Gateway, 
+can reach VNets connected that Gateway 
+
+---------------------------------------------------------
+#### Virtual Network
+NIC has to be in the same _Subscription_ and _Region_ with VNet 
+VM and VNet must be in a same region, 
+but can be in different resource group, 
+you cannot create VM without VNet
+IP address must be unique in a subscription
+Virtual Private Network (VPN)
+= one virtual network that consits of Azure + On-premise)
+IP address must be unique inside a VPN)
+(scenario)
+ExpressRoute: No site-to-site. No encription. p2p. a2a. CloudExchange
+
+network security group: one for one subnet
+service endpoint: SQL/storage only from subnet with an endpoint
+                  - access from internet closed
+
+NVA = firewall
+behind gateway? in DMZ? 
+
+*.*.*.0: network adress
+*.*.*.1: taken by azure for default gateway 
+*.*.*.2,3: taken by Azure DNS
+*.*.*.256: broadcast
+
+VNet: need one subnet inside. max 50 in subscription.
+      can be increased to 500
+
+pvivate ID : to comunicate to other (Azure) resources in teh VNet
+             - do not change 
+
+public ID: to communicate to internet
+           - not change, if dynamic, and rebooted or stopped
+           - change, if dynamic, and deallocate
+need static public ID
+- static IP in DNS name resolution
+- static IP in security restriction
+- static IP linked in TLS/SSL cetificates
+- static IP in  Firewal rule
+- static IP in Domain Controllers/DNS server
+
+Basic / Standard : cannot change afterward
+
+NSG : 5 tuple, multiplication, use 'Effective security rules'
+use inside VNet
+- default
+65000 AllowVnetInBound
+65001 AllowAzureLoadBalancerInBound
+65500 DenyAllInBound
+
+65000 AllowVnetOutBound
+65001 AllowInternetOutBound
+65500 DenyAllOutBound
+
+service tag: change name to range of IP addresses
+VirtualNetwork/Internet/SQL/Storage/AzureLoadBalancer/AzureTrafficManager
+
+When you create a NSG and attached to a subnet, 
+it can control traffic inside a subnet, 
+resource-to-resource.
+
 ---------------------------------------------------------
 #### Azure Load Balancer
 TCP/UDP
@@ -911,6 +1255,11 @@ Azure Site Recovery
  - not whole VM, but disk only
 VM recovery: need to install rescovery agent to target VM
 ---------------------------------------------------------
+#### Azure Backup
+SQL Database, point-in-time backup
+Blob stored in RAGRS
+
+---------------------------------------------------------
 #### Azure Backup Center
 work across service/vaults/subscriptions/regions/tenants
 policy/workbook/monitor logs
@@ -945,6 +1294,59 @@ it is not really deteleted, but kept 14 days
 
 =========================================================
 ### Operation
+---------------------------------------------------------
+#### Resource Lock
+- Delete/ReadOnly
+- can move anywhere, unless it is not deleted
++ storage may not be read even with ReadOnly
+  + cannot see list of keys (need POST)
+  + MS learn : 6-use-resource-locks-to-protect-resources
+- lock is inherited
+
+Azure SQL Database is a PaaS. 
+
+---------------------------------------------------------
+#### Azure Policy, RBAC
+Scope
+Policy : MG/SUB/RG : multiplicable
+Role   : Sub/RG/R  : additive
+even if policy prohibits, one can 'move' banned resource 
+to an RG
+when no-allowed: VNet
+- cannot add address space
+- but can move an existing VNet from other RG
+---------------------------------------------------------
+#### Azure Monitor : Azure + on-premise, metric + log
+insights/analysis/integrate/resopnd/visualize
+insights: app, vm, container
+analyzie: matric/log analytics
+integrate: logic apps, export APIs
+respond: alert/autoscale
+visualize: dashboard/workbook/power BI
+SQL: enable diagnostics
+vm: add agent
+kusto:  query language
+
+Azure Monitor : Performance
+Azure Security Center : Security/Compliznce, summary
+   can install agent to Iaas/Paas 
+Azure Sentinel : Network Security in more detail
+   automated action. playbook/notebook, enterprise
+   Log Analytics, workspace, connectors
+
+Application Insights:
+  instrumentation = install agent
+
+Azure Monitor Log -> store in Log Analytics Workspace
+VM syslog, windows event log
+VM insights 
+
+Azure Alert <- Azure Monitor
+metric alert : CPU 95%
+activity log alert : resource deleted
+log alert : 404 error
+
+
 ---------------------------------------------------------
 #### Azure PowerShell
 Ubuntu Devian apt-get
@@ -1173,421 +1575,11 @@ Set-AzDefault -ResourceGroupName learn-09e42320-c4cd-434a-87a2-dcfa7246a4f2
 =========================================================
 END
 =========================================================
-
 ---------------------------------------------------------
-#### Azure API Management Service
-Azure API Gateway : an instance of API Management Service
-
-
----------------------------------------------------------
-#### Redis
-transaction MULTI/EXEC/DISCARD
-do not support rolllback?
-DISCARD => stop
-failed => mess
-ServiceStack.Redis : C# library
-IRedisClient.CreateTransaction()
-QueueCommand()
-Commit()
-
-
----------------------------------------------------------
-#### Azure Function
-timeout 5 min, max 10 min.
-cannot execute a function that takes > 10 min
-=> Durable Functions
-stateless. statefull -> use storage
-HTTP, queue
-max 200 instance?
-
-payasyougo : intermittant, autoscaling
-App Service: continuous (not severless)
-
----------------------------------------------------------
-#### Azure Event Hub
-=> mostly for analysis or IoT | Azure Steam Analytics
-AMQP : initial overhead high, first transmission
-HTTPS : each overhead low
-replace Kafka
-Basic/[Standard]/Premium/Dedicated
-1. Create a namespace: throughput/pricing/performance metric
-az eventhubs namespace create
-2. Create event hub in the namespace: partition/rentention
-az eventhubs eventhub create
-
-3. create storage account at subscriber
-az stroage account create
-az stroage account key list
-az stroage account show-connection-string
-az stroage container create
-
-default partition: 4
-max publication size : 1 MB
-
----------------------------------------------------------
-#### Azure Backup
-SQL Database, point-in-time backup
-Blob stored in RAGRS
-
-
----------------------------------------------------------
-#### Azure Cosmos DB (~Cloud Spanner)
-NoSQL, global
-MongoDB/Cassandra/Gremlin, JSON,XML
-Multimaster, 99.999%
-
----------------------------------------------------------
-#### Storage Account
-hot/cool(30d)/archive(180d) need StorageV2+Blob storage
-GRS: GR + LRS
-RAGRS: GRS (one is read only. more expensive than GRS)
-GZRS: GR + ZRS
-need StorageV2
-ZRS: can read and write at zonal shutdown
-GRS: cannot read at zonal shutdown. 
-RAGRS: can read at zonal shutdown. 
-BlobStorage: does not have ZRS
-price: Gp2 and Blob same price
----------------------------------------------------------
----
-#### VNet Peering
-- global, over subscritpions, over regions.
-- no gateway (no cost for gateway)
-- traffic cost
-- when one connected, the other also connected
-HTTP = TCP at 80
-RDP  = TCP at 3389
-SMB  = TCP at 445 
-Gateway Transit: if other VNet has VPN Gateway, 
-can reach VNets connected that Gateway 
-
----------------------------------------------------------
-#### Virtual Network
-NIC has to be in the same _Subscription_ and _Region_ with VNet 
-VM and VNet must be in a same region, 
-but can be in different resource group, 
-you cannot create VM without VNet
-IP address must be unique in a subscription
-Virtual Private Network (VPN)
-= one virtual network that consits of Azure + On-premise)
-IP address must be unique inside a VPN)
-(scenario)
-ExpressRoute: No site-to-site. No encription. p2p. a2a. CloudExchange
-
-network security group: one for one subnet
-service endpoint: SQL/storage only from subnet with an endpoint
-                  - access from internet closed
-
-NVA = firewall
-behind gateway? in DMZ? 
-
-*.*.*.0: network adress
-*.*.*.1: taken by azure for default gateway 
-*.*.*.2,3: taken by Azure DNS
-*.*.*.256: broadcast
-
-VNet: need one subnet inside. max 50 in subscription.
-      can be increased to 500
-
-pvivate ID : to comunicate to other (Azure) resources in teh VNet
-             - do not change 
-
-public ID: to communicate to internet
-           - not change, if dynamic, and rebooted or stopped
-           - change, if dynamic, and deallocate
-need static public ID
-- static IP in DNS name resolution
-- static IP in security restriction
-- static IP linked in TLS/SSL cetificates
-- static IP in  Firewal rule
-- static IP in Domain Controllers/DNS server
-
-Basic / Standard : cannot change afterward
-
-NSG : 5 tuple, multiplication, use 'Effective security rules'
-use inside VNet
-- default
-65000 AllowVnetInBound
-65001 AllowAzureLoadBalancerInBound
-65500 DenyAllInBound
-
-65000 AllowVnetOutBound
-65001 AllowInternetOutBound
-65500 DenyAllOutBound
-
-service tag: change name to range of IP addresses
-VirtualNetwork/Internet/SQL/Storage/AzureLoadBalancer/AzureTrafficManager
-
-When you create a NSG and attached to a subnet, 
-it can control traffic inside a subnet, 
-resource-to-resource.
-
-
----------------------------------------------------------
-
----
-Network:
-- VPN Gateway
-- Application Gateway
-- Firewall
-- Azure DNS
-- Azure Bastion
-
----------------------------------------------------------
-Firewall : stateful, (multiple) static IP, SNAT/DNAT
-unrestricted scalability, loggging, Azure Monitor
-high-availability, Availability Zones
-(no additional LB required. _FOR_ firewall)  
-(LB for backend still required?)
-Microsoft Threat Inteligence, list of malicious IP
-FQDN filtering HTTP/S traffic on not IP, but on name
-hub-spoke. subnet /27. Bastian, VPN Gateway
-SecOps|DevOps separation, cross subscription
-log -> Azure Monitor
-1. NAT rules : Firewall external IP (single) -> private address
-2. Network rules : TCP/UDP/ICMP(non HTTP/S)
-3. Application rules : full name. outbound
-
-
----------------------------------------------------------
-Azure Monitor : Azure + on-premise, metric + log
-insights/analysis/integrate/resopnd/visualize
-insights: app, vm, container
-analyzie: matric/log analytics
-integrate: logic apps, export APIs
-respond: alert/autoscale
-visualize: dashboard/workbook/power BI
-SQL: enable diagnostics
-vm: add agent
-kusto:  query language
-
-Azure Monitor : Performance
-Azure Security Center : Security/Compliznce, summary
-   can install agent to Iaas/Paas 
-Azure Sentinel : Network Security in more detail
-   automated action. playbook/notebook, enterprise
-   Log Analytics, workspace, connectors
-
-Application Insights:
-  instrumentation = install agent
-
-Azure Monitor Log -> store in Log Analytics Workspace
-VM syslog, windows event log
-VM insights 
-
-Azure Alert <- Azure Monitor
-metric alert : CPU 95%
-activity log alert : resource deleted
-log alert : 404 error
-
----------------------------------------------------------
-#### Azure Queue Storage 
-REST base. store millions of messages.
-
-Azure Service Bus
-message broker 
-Service Bus Topic : multiple subscription
-Service Bus Queue : at-most-once, FIFO, transaction (=atomic), push
-Queue Storage : need audit, >80GB
-queues: temporary storage, FIFO, single receiver
-topics: multiple subscription 
-Service Bus Queue vs Storage Queue
-256 KB | 64 KB
-at-most-once/at-least-once | -
-FIFO | FIFO (not guranteed)
-can group | -
-RBAC | -
-80GB| unlimite queue size
- -  | log
-need SAS keys
-clients neeed
-Namespace = endpoint bicycleService.servicebus.windows.net
-access key 
-Namespace + access key = connection string
-await SendMessageAsync (can send while waiting)
-
----------------------------------------------------------
-#### Azure Policy, RBAC
-Scope
-Policy : MG/SUB/RG : multiplicable
-Role   : Sub/RG/R  : additive
-even if policy prohibits, one can 'move' banned resource 
-to an RG
-when no-allowed: VNet
-- cannot add address space
-- but can move an existing VNet from other RG
-
----------------------------------------------------------
-#### Storage Account
-Data in transitit : Client-Side Encryption, HTTPS, SMB 3.0
-Shared Access Signature : delegated access, time interval
-Authorization: RBAC,Sshared Key, SAS, Anonymous access (web contents)
-
----------------------------------------------------------
-#### Resource Lock
-- Delete/ReadOnly
-- can move anywhere, unless it is not deleted
-+ storage may not be read even with ReadOnly
-  + cannot see list of keys (need POST)
-  + MS learn : 6-use-resource-locks-to-protect-resources
-- lock is inherited
-
-Azure SQL Database is a PaaS. 
-
----------------------------------------------------------
-#### Azure Kubernetes Service
-Node pool > Node > Deployment (YAML) > Pods > Container
-YAML: Manifest
-node : VM
-nodes in a Nodepool are all identical
-pods in a Deployments are all identical. manged by kubernetes
-AKS Cluster two types of nodes
-- Azure managed nodes : control plane. orchestration. (free) 
-- Customer managed nodes : run apps. agend nodes
-kubelet: receives orchestration requests
-kube-proxy : on each node. route network traffic
-container runtime : containerd. to talk to storage and network
-nodes -> virtual network (kube-proxy takes care)
-Services: groups pod. provide network connectivity to pods
-- Cluster IP: internal IP inside AKS cluster. internal only
-- NodePort: can access nodes directly from outside
-- LoadBalancer: over pods
-- ExternalName: DNS entry  
-Persistent storage 
-Volumes : a pod. gone with a pod
-- Azure Disks (managed. Kubernetes Data Disk),
-  Azure Premium Storage. mounted as ReadWriteOnce. 
-  Single node
-- Azure Files, accesed by multiple nodes, SMB
-Persistent volumes : StatefulSets. managed by Kubernetes API
-  PersistentVolume. created by cluster admin
-- Azure Disk
-- Azure Files 
-Storage clases
-- default/managed-preimum/azurefile/azurefile-premium
-Scale out
-- pods (replica)
-- nodes (node count)
-Network 
-Kubenet: pods get their own IPs (to save IPs in VNet subnet),
-No talking each other,
-nodes are on internal VNet subnet. pods are not on VNet.
-CNI: pods are on the Vnet subnet
-User need to update Kubernetes 
-
----------------------------------------------------------
-####  Container Group of Azure Container Instances
-Containers in Containers group ~ Containers Kubernetes pods 
-Linux Only
-(typical container group)
-on a  single host machine
-has a DNS name label 
-has a public IP address/Port
-has two containers, one (port 80) and other (1433, MS SQL Server)
-has two Azure File Shares as volume mounts (one for each container)
-Dedployment 
-1. ARM template (recommended)
-2. YAML 
-
----------------------------------------------------------
-#### Storage for Virtual Machine
-- standard disk = HDD. Blobk, Page, 
-- premium disk = SDD. Page Blob only
-Blob Storage (hot and cool. no archive). block blob, incremental blob
-OS Storage : system disk. C:. <4GB. image. Linux 30GB, Windows 127GB
-Temporary Storage : swap. D: 
-Data Storage : all others. persistent. < 32TB
-(All blob)
-
-senario : onpremise -> azure
-VHD (Virtual Hard Drive). Stored as page blob
-1. local disk -> VHD ('Add-AzVhd') -> Storage Account 
-2. -> connect to VM
-
-add disk to Linux VM :
-az vm disk attach \
-  --vm-name support-web-vm01 \
-  --name uploadDataDisk1 \
-  --size-gb 64 \
-  --sku Premium_LRS \
-  --new
-
----------------------------------------------------------
-
 (how to get public ID)
 az vm show
-
-
 get ipaddress
 
 (to execute command lsblk in 'vm01')
 ssh azureuser@ipaddress lsblk
 
-99.999% five nine
-
-Premium Storage
-- Dynamic CRM, Exchange Server, SAP Business Suite,
-- SQL Server, Oracle, Share Point
-- LRS only
-
-Ultra Disk - can chanbe performance, no need to restart VM
-SAP HANA
-Dv3  : cannot use Premium
-Dsv3 : can use Premium
-
-Standard SSD: small size VM, but fast storage case
-
-LRS : 3 in 3 VMs   in a data center
-ZRS : 3 in 3 Zones in a region 
-GRS : 2 in 2 Regions
-GZRS : (3 in 3 Zones) x 2 in 2 Regions
-
-RA-GRS  : second one is read-only. only for backup 
-RA-GZRS : second one is read-only. only for backup 
-
-disk 'level'
-P4    -  P80
-32GB  -  32TB
-
----
-(Making disk size larger) cannot make it smaller
-- stop VM
-az vm deallocate --resource-group --name
-az disk update  --resource-group --name --size-gb 200
-az vm start --resource-group --name
-expand particition 'diskpart' / parted / resize2fs
-
-az disk list \
-  --query '[*].{Name:name,Gb:diskSizeGb,Tier:sku.tier}' \
-  --output table
----
-
-az configure --defaults location=eastus
-az configure --defaults group="learn-02e70cf3-d998-4177-8d30-1e12a9040db6"
-az vm create \
-  --name support-web-vm01 \
-  --image Canonical:UbuntuServer:16.04-LTS:latest \
-  --size Standard_DS1_v2 \
-  --admin-username azureuser \
-  --generate-ssh-keys
-az vm disk attach \
-  --vm-name support-web-vm01 \
-  --name uploadDataDisk1 \
-  --size-gb 64 \
-  --sku Premium_LRS \
-  --new  
-
-ipaddress=$(az vm show \
-  --name support-web-vm01 \
-  --show-details \
-  --query [publicIps] \
-  --output tsv)
-
-ssh azureuser@$ipaddress lsblk
-
-az vm extension set \
-  --vm-name support-web-vm01 \
-  --name customScript \
-  --publisher Microsoft.Azure.Extensions \
-  --settings '{"fileUris":["https://raw.githubusercontent.com/MicrosoftDocs/mslearn-add-and-size-disks-in-azure-virtual-machines/master/add-data-disk.sh"]}' \
-  --protected-settings '{"commandToExecute": "./add-data-disk.sh"}'
