@@ -10,7 +10,7 @@
 2. Region
 3. Size
 4. Storage/OS
-       compute: webserver, application server, network appliance
+compute: webserver, application server, network appliance
 memory: SQL
 OS system disk : SATA
 data disk : SCSI
@@ -62,15 +62,15 @@ VM: empty Scale set. VM to be added manually
 - Custom Script
 - Desired State Configuration (DSC)
 
-- Extensions
+(Extensions)
 small aplications. post-deployment configuration.
 automation task. software installation. anti-virus protection.
 like an autoexec.bat.
-- Custom Script Extensions (CSE)
+(Custom Script Extensions (CSE))
 Azure Portal -> Extensions -> PowerShell script
 Set-AzVmCustomScriptExtentions -FileUri https://scriptstore.blob..
 Timeout: 90 min; Dependencies;
-- Desired State Configuration
+(Desired State Configuration)
 DSC is a PowerShell Script *.ps1
 Configuration IISInstall{
  Node "localhost"{
@@ -91,7 +91,8 @@ low-priority scale set:automatic shutdown, 80% cheaper
 an Availability zone can span two data centers
 PPG in one data center
 applied to availability set / VMSS
-stop VM before adding to PPG
+stop VM before adding to Proximity Placement Group
+
 ---------------------------------------------------------
 #### Windows Virtual Machine
 created together with VM
@@ -106,6 +107,7 @@ N:GPU
 H:HPC
 Managed Disk: storage account managed. can scale out, 
 RBAC access, snapshot (VM must be shutdown once), backup
+
 ---------------------------------------------------------
 #### Storage for Virtual Machine
 - standard disk = HDD. Blobk, Page, 
