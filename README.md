@@ -66,7 +66,7 @@ VM: empty Scale set. VM to be added manually
 small aplications. post-deployment configuration.
 automation task. software installation. anti-virus protection.
 like an autoexec.bat.
-(Custom Script Extensions (CSE))
+(Custom Script Extensions, CSE)
 Azure Portal -> Extensions -> PowerShell script
 Set-AzVmCustomScriptExtentions -FileUri https://scriptstore.blob..
 Timeout: 90 min; Dependencies;
@@ -78,7 +78,7 @@ Configuration IISInstall{
    Ensure = "Present"
    Name = 'Web-Server"
 }}}
-default : 2 instances, 1 loadbalancer
+default: 2 instances, 1 loadbalancer
 health probe
 * az group create
 * az vmss create
@@ -88,14 +88,14 @@ low-priority scale set:automatic shutdown, 80% cheaper
 
 ---------------------------------------------------------
 #### Proximity Placement Groups
-an Availability zone can span two data centers
-PPG in one data center
-applied to availability set / VMSS
-stop VM before adding to Proximity Placement Group
+an Availability zone may span two data centers
+Proximity Placement Groups in one data center
+Applied to availability set / VMSS
+Stop VM before adding to Proximity Placement Group
 
 ---------------------------------------------------------
 #### Windows Virtual Machine
-created together with VM
+Things automatically created with VM
 - Storage Account, OS system disk, Data disk, Temp. disk,
 - VNet, NIC, public IP
 quota: 20 VM cores pro subscription pro region.
@@ -110,27 +110,26 @@ RBAC access, snapshot (VM must be shutdown once), backup
 
 ---------------------------------------------------------
 #### Storage for Virtual Machine
-- standard disk = HDD. Blobk, Page, 
-- premium disk = SDD. Page Blob only
+- standard disk=HDD. Blobk, Page, 
+- premium disk=SDD. Page Blob only
 Blob Storage (hot and cool. no archive). block blob, incremental blob
 OS Storage : system disk. C:. <4GB. image. Linux 30GB, Windows 127GB
 Temporary Storage : swap. D: 
 Data Storage : all others. persistent. < 32TB
 (All blob)
 
-senario : onpremise -> azure
+Senario : onpremise -> azure
 VHD (Virtual Hard Drive). Stored as page blob
 1. local disk -> VHD ('Add-AzVhd') -> Storage Account 
 2. -> connect to VM
 
-add disk to Linux VM :
+(Add disk to Linux VM)
 az vm disk attach \
   --vm-name support-web-vm01 \
   --name uploadDataDisk1 \
   --size-gb 64 \
   --sku Premium_LRS \
   --new
-
 
 ---
 (Making disk size larger) cannot make it smaller
@@ -177,20 +176,19 @@ az vm extension set \
 
 
 ---------------------------------------------------------
----------------------------------------------------------
 #### Azure Kubernetes Service
-not Paas. only partly
+Not Paas. only partly
 Node pool > Node > Deployment (YAML) > Pods > Container
 YAML: Manifest
-node : VM
+node: VM
 nodes in a Nodepool are all identical
 pods in a Deployments are all identical. manged by kubernetes
 AKS Cluster two types of nodes
-- Azure managed nodes : control plane. orchestration. (free) 
-- Customer managed nodes : run apps. agend nodes
+- Azure managed nodes: control plane. orchestration. (free) 
+- Customer managed nodes: run apps. agend nodes
 kubelet: receives orchestration requests
-kube-proxy : on each node. route network traffic
-container runtime : containerd. to talk to storage and network
+kube-proxy: on each node. _Route_ network traffic
+container runtime: containerd. to talk to storage and network
 nodes -> virtual network (kube-proxy takes care)
 Services: groups pod. provide network connectivity to pods
 - Cluster IP: internal IP inside AKS cluster. internal only
@@ -216,43 +214,8 @@ Network
 Kubenet: pods get their own IPs (to save IPs in VNet subnet),
 No talking each other,
 nodes are on internal VNet subnet. pods are not on VNet.
-CNI: pods are on the Vnet subnet
+CNI: pods are on the VNet subnet
 User need to update Kubernetes 
-
----------------------------------------------------------
-####  Container Group of Azure Container Instances
-Containers in Containers group ~ Containers Kubernetes pods 
-Linux Only
-(typical container group)
-on a  single host machine
-has a DNS name label 
-has a public IP address/Port
-has two containers, one (port 80) and other (1433, MS SQL Server)
-has two Azure File Shares as volume mounts (one for each container)
-Dedployment 
-1. ARM template (recommended)
-2. YAML 
----------------------------------------------------------
-#### Azure Container Registry
-az group create -n RG --location westeurope
-az acr create -n NAME_UNIQ -sku Premium
-- edit Dockerfile
-az acr build --registry NAME_UNIQ --image hello:v1 .
-az acr build repository list -n NQME_UNIQ 
-credential: Azure AD (RBAC) | admin for registry
-az acr update -n NAME_UNIQ --admin-enabled true
-az acr credential show -n NAME_UNIQ => username, password
-az acr replication create
-az acr replication list
-can automate build and deploymen
-security, credential, encryption > Docker Hub
-webhook
-az acr task create
-1. GitHub monitored by ACR (task)
-   -> ACR build an image -> store
-2. webhook by ACR (image updated)
-   -> subscribed by App and Service -> App pull -> App restart
-
 
 ---------------------------------------------------------
 #### Azure Container Instances
@@ -280,6 +243,41 @@ az monitor metrics list --resource CONTAINER_ID --metrics CPUUsage
 init Container: works at the begining, 
 set account, run script, configure database, etc. 
 same hardware with other workload containers
+
+---------------------------------------------------------
+####  Container Group of Azure Container Instances
+Containers in Containers group ~ Containers Kubernetes pods 
+***Linux Only***
+(typical container group)
+on a  single host machine
+has a DNS name label 
+has a public IP address/Port
+has two containers, one (port 80) and other (1433, MS SQL Server)
+has two Azure File Shares as volume mounts (one for each container)
+Dedployment 
+1. ARM template (recommended)
+2. YAML 
+
+---------------------------------------------------------
+#### Azure Container Registry
+az group create -n RG --location westeurope
+az acr create -n NAME_UNIQ -sku Premium
+- edit Dockerfile
+az acr build --registry NAME_UNIQ --image hello:v1 .
+az acr build repository list -n NQME_UNIQ 
+credential: Azure AD (RBAC) | admin for registry
+az acr update -n NAME_UNIQ --admin-enabled true
+az acr credential show -n NAME_UNIQ => username, password
+az acr replication create
+az acr replication list
+can automate build and deploymen
+security, credential, encryption > Docker Hub
+webhook
+az acr task create
+1. GitHub monitored by ACR (task)
+   -> ACR build an image -> store
+2. webhook by ACR (image updated)
+   -> subscribed by App and Service -> App pull -> App restart
 
 ---------------------------------------------------------
 #### Azure App Service Plan (PaaS)
@@ -364,6 +362,7 @@ Namespace = endpoint bicycleService.servicebus.windows.net
 access key 
 Namespace + access key = connection string
 await SendMessageAsync (can send while waiting)
+
 ---------------------------------------------------------
 #### Azure Event Hub
 => mostly for analysis or IoT | Azure Steam Analytics
@@ -384,7 +383,8 @@ az stroage container create
 
 default partition: 4
 max publication size : 1 MB
----------------------------------------------------------
+
+
 =========================================================
 ### Storage
 ---------------------------------------------------------
