@@ -37,6 +37,7 @@ defaul NSG 1000 RDP TCP 3389 Allow for inbound?
 Virtual machine Scale Set:built-in update domate, 
 20% of machines updated at once.
 ssh azureuser@ipaddress lsblk
+
 ---------------------------------------------------------
 #### Virtual Machine Scale Set
 Unplanned Hardware Maintenance: live migration, low performance
@@ -107,73 +108,6 @@ N:GPU
 H:HPC
 Managed Disk: storage account managed. can scale out, 
 RBAC access, snapshot (VM must be shutdown once), backup
-
----------------------------------------------------------
-#### Storage for Virtual Machine
-- standard disk=HDD. Blobk, Page, 
-- premium disk=SDD. Page Blob only
-Blob Storage (hot and cool. no archive). block blob, incremental blob
-OS Storage : system disk. C:. <4GB. image. Linux 30GB, Windows 127GB
-Temporary Storage : swap. D: 
-Data Storage : all others. persistent. < 32TB
-(All blob)
-
-Senario : onpremise -> azure
-VHD (Virtual Hard Drive). Stored as page blob
-1. local disk -> VHD ('Add-AzVhd') -> Storage Account 
-2. -> connect to VM
-
-(Add disk to Linux VM)
-az vm disk attach \
-  --vm-name support-web-vm01 \
-  --name uploadDataDisk1 \
-  --size-gb 64 \
-  --sku Premium_LRS \
-  --new
-
----
-(Making disk size larger) cannot make it smaller
-- stop VM
-az vm deallocate --resource-group --name
-az disk update  --resource-group --name --size-gb 200
-az vm start --resource-group --name
-expand particition 'diskpart' / parted / resize2fs
-
-az disk list \
-  --query '[*].{Name:name,Gb:diskSizeGb,Tier:sku.tier}' \
-  --output table
----
-
-az configure --defaults location=eastus
-az configure --defaults group="learn-02e70cf3-d998-4177-8d30-1e12a9040db6"
-az vm create \
-  --name support-web-vm01 \
-  --image Canonical:UbuntuServer:16.04-LTS:latest \
-  --size Standard_DS1_v2 \
-  --admin-username azureuser \
-  --generate-ssh-keys
-az vm disk attach \
-  --vm-name support-web-vm01 \
-  --name uploadDataDisk1 \
-  --size-gb 64 \
-  --sku Premium_LRS \
-  --new  
-
-ipaddress=$(az vm show \
-  --name support-web-vm01 \
-  --show-details \
-  --query [publicIps] \
-  --output tsv)
-
-ssh azureuser@$ipaddress lsblk
-
-az vm extension set \
-  --vm-name support-web-vm01 \
-  --name customScript \
-  --publisher Microsoft.Azure.Extensions \
-  --settings '{"fileUris":["https://raw.githubusercontent.com/MicrosoftDocs/mslearn-add-and-size-disks-in-azure-virtual-machines/master/add-data-disk.sh"]}' \
-  --protected-settings '{"commandToExecute": "./add-data-disk.sh"}'
-
 
 ---------------------------------------------------------
 #### Azure Kubernetes Service
@@ -436,6 +370,73 @@ Standard SSD: small size VM, but fast storage case
 Data in transit: Client-Side Encryption, HTTPS, SMB 3.0
 Shared Access Signature: delegated access, time interval
 Authorization: RBAC,Sshared Key, SAS, Anonymous access (web contents)
+
+
+---------------------------------------------------------
+#### Storage for Virtual Machine
+- standard disk=HDD. Blobk, Page, 
+- premium disk=SDD. Page Blob only
+Blob Storage (hot and cool. no archive). block blob, incremental blob
+OS Storage (System disk): \C:. <4GB. image. Linux 30GB, Windows 127GB
+Temporary Storage: swap. \D: 
+Data Storage: all others. persistent. < 32TB
+(All blob)
+
+Senario: onpremise -> azure
+VHD (Virtual Hard Drive). Stored as page blob
+1. local disk -> VHD ('Add-AzVhd') -> Storage Account 
+2. -> connect to VM
+
+(Add disk to Linux VM)
+az vm disk attach \
+  --vm-name support-web-vm01 \
+  --name uploadDataDisk1 \
+  --size-gb 64 \
+  --sku Premium_LRS \
+  --new
+
+---
+(Making disk size larger) cannot make it smaller
+- stop VM
+az vm deallocate --resource-group --name
+az disk update  --resource-group --name --size-gb 200
+az vm start --resource-group --name
+expand particition 'diskpart' / parted / resize2fs
+
+az disk list \
+  --query '[*].{Name:name,Gb:diskSizeGb,Tier:sku.tier}' \
+  --output table
+---
+
+az configure --defaults location=eastus
+az configure --defaults group="learn-02e70cf3-d998-4177-8d30-1e12a9040db6"
+az vm create \
+  --name support-web-vm01 \
+  --image Canonical:UbuntuServer:16.04-LTS:latest \
+  --size Standard_DS1_v2 \
+  --admin-username azureuser \
+  --generate-ssh-keys
+az vm disk attach \
+  --vm-name support-web-vm01 \
+  --name uploadDataDisk1 \
+  --size-gb 64 \
+  --sku Premium_LRS \
+  --new  
+
+ipaddress=$(az vm show \
+  --name support-web-vm01 \
+  --show-details \
+  --query [publicIps] \
+  --output tsv)
+
+ssh azureuser@$ipaddress lsblk
+
+az vm extension set \
+  --vm-name support-web-vm01 \
+  --name customScript \
+  --publisher Microsoft.Azure.Extensions \
+  --settings '{"fileUris":["https://raw.githubusercontent.com/MicrosoftDocs/mslearn-add-and-size-disks-in-azure-virtual-machines/master/add-data-disk.sh"]}' \
+  --protected-settings '{"commandToExecute": "./add-data-disk.sh"}'
 
 ---------------------------------------------------------
 #### Azure Storage Explorer
@@ -1551,7 +1552,7 @@ VMs. The business of DSC, however, includes monitoring (=watch) the
 status of the software combination. DSC intervenes (install/remove
 software) when unwanted changes are made in the combination of the
 software.
-
+<
 *Azure Blueprint* : Use all of them above (hardware+software) from one
  place.
 
