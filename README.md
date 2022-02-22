@@ -389,6 +389,11 @@ max publication size : 1 MB
 ### Storage
 ---------------------------------------------------------
 #### Storage Account 99.999% five nine
+regional. Need two accounts when you want them in two locations.
+Name length 3-24. alphabet + number (no symbols)
+Storage V2
+Blob Storage : Block, incremental (log)
+
 (Access Tier/Level)
 Only StorageV2+Blob storage: hot/cool(30d)/archive(180d)
 
@@ -437,13 +442,12 @@ Authorization: RBAC,Sshared Key, SAS, Anonymous access (web contents)
 credential: SAS, connection string, or account key
 azcopy: Blob storage (SAS/key/AD), File (SAS)
 
----------------------------------------------------------
-#### Azure Storage Explorer
 Storage Management. 
 full access needs - access to strage acccount/container, Azure AD
 connect to Storage - [connection string | SAS|account key]
 access keys (primary and secondary) : az storage account keys list
 Azure Storage/Azure Cosmos DB/Azure Data Lake
+
 ---------------------------------------------------------
 #### Shared Access Signature
 - Public Access, aka anonymous public read access
@@ -473,12 +477,6 @@ C#: container = BlobContainerClient()
 az storage account create
 az storage container create
 Stored Access Policy
----------------------------------------------------------
-#### Azure Storage Account
-regional. Need two accounts when you want them in two locations.
-Name 3-24. alphabet + number (no symbols)
-Storage V2
-Blob Storage : Block, incremental (log)
 
 ---------------------------------------------------------
 #### Azure File Storage / File Sync
@@ -571,8 +569,7 @@ run in background -> large files with fragile connection
 
 
 ---------------------------------------------------------
----------------------------------------------------------
-#### Redis
+#### Azure Caches for Redis
 transaction MULTI/EXEC/DISCARD
 do not support rolllback?
 DISCARD => stop
@@ -593,7 +590,6 @@ Multimaster, 99.999%
 PaaS. Backup automatically
 SQL Server : IaaS
 
-
 =========================================================
 ### Network 
 ---------------------------------------------------------
@@ -604,7 +600,7 @@ SQL Server : IaaS
 - Azure Bastion
 
 ---------------------------------------------------------
-#### Virtual Network
+#### Azure Virtual Network
 NIC has to be in the same _Subscription_ and _Region_ with VNet 
 VM and VNet must be in a same region, 
 but can be in different resource group, 
@@ -663,7 +659,6 @@ VirtualNetwork/Internet/SQL/Storage/AzureLoadBalancer/AzureTrafficManager
 When you create a NSG and attached to a subnet, 
 it can control traffic inside a subnet, 
 resource-to-resource.
-
 
 ---------------------------------------------------------
 #### VNet Peering
@@ -734,7 +729,6 @@ Public IP. VPN device configuration script
 Add connection => Portal: when two VNets are on same subscription
 active-standby 10-15s, 60-90s
 
-
 ---------------------------------------------------------
 #### ExpressRoute
 collocation environment/center ~ community cloud
@@ -769,7 +763,7 @@ Basic : site-site by VPN Gateway only
 Standard : ER-p2s. 
 
 ---------------------------------------------------------
-#### Azure Private Link Service
+#### Azure Private Link/ Service
 Private endpoind = a special NIC for a VNet
 Prinvate link = link between service and endpoint
 need a DNS to direct traffic from VNet to P-endpoint.
@@ -816,6 +810,7 @@ Service Endpoint: target IP (=IP of service) are public
 ---------------------------------------------------------
 #### Private Endpoint -> Private Link
 PaaS
+
 ---------------------------------------------------------
 #### Service Endpoint
 Endpoint of VNet (private IP) -> Azure service
@@ -831,7 +826,7 @@ service traffic does not need to go to UDR
 
 
 ---------------------------------------------------------
-#### Firewall : stateful, (multiple) static IP, SNAT/DNAT
+#### Azure Firewall: stateful, (multiple) static IP, SNAT/DNAT
 unrestricted scalability, loggging, Azure Monitor
 high-availability, Availability Zones
 (no additional LB required. _FOR_ firewall)  
@@ -877,6 +872,7 @@ Health Probe
    + TCP: if connection is successful
 Basic: VMs in backend pool must be in scaleset/availability set
 Standard: single VMs can be added to backpool
+
 ---------------------------------------------------------
 #### Azure Load Balancer
 five tuple hash: IPx2/Portx2/protocol
@@ -943,7 +939,6 @@ NVA are VMs
 IP Fowarding: to pass a packet to other IP
 (it does not stop there <=> black hole) 
 
-
 ---------------------------------------------------------
 #### Azure Application Gateway
 a load balancer for web applications. URL base
@@ -978,6 +973,7 @@ Web Application Firewall (WAF)
    - remote file inclusion
    - Bots, crawlers, scanners, HTTP protocol violations, anomalies
 OWASP: Core Rule Set (CRS), WAF CRS 2.2.9/3.0
+
 ---------------------------------------------------------
 #### Routing/Route/Router, Network Virtual Appliance, NVA
 VNet, Subnet, on-premises => System Route (automatic)
@@ -1009,8 +1005,7 @@ A subnet can have one routing table
 NVA must be HA. 
 If you have 'None' in UDR, it would not be re-routed to System Rout
 
-
-----
+---------------------------------------------------------
 #### Azure DNS
 DNS Zone: 'zone' part of database. a text file
 (public DNS)
@@ -1170,6 +1165,37 @@ Azure RBAC: additive, not multiplicative
 =========================================================
 ### Monitor
 ---------------------------------------------------------
+#### Azure Monitor : Azure + on-premise, metric + log
+insights/analysis/integrate/resopnd/visualize
+insights: app, vm, container
+analyzie: matric/log analytics
+integrate: logic apps, export APIs
+respond: alert/autoscale
+visualize: dashboard/workbook/power BI
+SQL: enable diagnostics
+vm: add agent
+kusto:  query language
+
+Azure Monitor : Performance
+Azure Security Center : Security/Compliznce, summary
+   can install agent to Iaas/Paas 
+Azure Sentinel : Network Security in more detail
+   automated action. playbook/notebook, enterprise
+   Log Analytics, workspace, connectors
+
+Application Insights:
+  instrumentation = install agent
+
+Azure Monitor Log -> store in Log Analytics Workspace
+VM syslog, windows event log
+VM insights 
+
+Azure Alert <- Azure Monitor
+metric alert : CPU 95%
+activity log alert : resource deleted
+log alert : 404 error
+
+---------------------------------------------------------
 #### Azure Monitor
 metrics/logs/alert+action
 app/guest os/resource/subscription/tenant
@@ -1178,6 +1204,7 @@ action group: e-mail.
 runbook/playbook/workbook
 Alert Rule: Scope (=resource), Condition, Action
 Action Group: notification + Action
+
 ---------------------------------------------------------
 #### Network Watcher
 an extension of VM, Regional, to be in same region with VNet
@@ -1300,6 +1327,53 @@ it is not really deteleted, but kept 14 days
 =========================================================
 ### Operation
 ---------------------------------------------------------
+#### Move / Moving Resources / Azure Resource Mover
+1. inter subscription
+(VM) we cannot move VMs when
+ - in backend pool of Load balancer
+ - not when all resources in the VNet are moved together
+ - Marketplace plan was installed
+ - in an Availability set
+first disable disk encryption
+az vm encryption disable
+first stop backup
+Resources do not acctually move. Just affiliation changes,
+(only metadata changes)
+subscriptions must be in the same tenant
+need to apply role again
+Move-AzResource -DestinationSubscriptionID XX
+                -DestinationResourceGroupName xx
+		-ResourceID XX 
+move VM with managed disks
+App Service cannot move when,
+there are App Service in target resource group (web app, etc.) **
+VPN Gateway linked to a public IP cannot be moved
+NIC can only move when all dependencies (VM, VNet) come together
+Network can move without interruption
+Network cannot move when, 
+2. resource group
+3. regions 
+Network Interface can be created where VNet is
+(same subscription, same region)
+Pulbic IP addresses are _region specific_, cannot move.
+(Public IPs are taken from regional reserve)
+Policies: MG/Sub/RG/R
+Locks: Sub/RG/Resource: when on RG, cannot scale App
+
+Tags:  Sub/RG/Resource
+Read-Only RG: can add from outside. 
+
+(Moving Resources)
+- another virtual network
+- another resource gropu
+- another subscription
+- another region
+Deleting resource group
++ check if other RG uses resource in
+Remove-AzResourceGropu -Name "ContosoRG01"
+Quota by _Subscription_
+
+---------------------------------------------------------
 #### Resource Lock
 - Delete/ReadOnly
 - can move anywhere, unless it is not deleted
@@ -1320,37 +1394,6 @@ to an RG
 when no-allowed: VNet
 - cannot add address space
 - but can move an existing VNet from other RG
----------------------------------------------------------
-#### Azure Monitor : Azure + on-premise, metric + log
-insights/analysis/integrate/resopnd/visualize
-insights: app, vm, container
-analyzie: matric/log analytics
-integrate: logic apps, export APIs
-respond: alert/autoscale
-visualize: dashboard/workbook/power BI
-SQL: enable diagnostics
-vm: add agent
-kusto:  query language
-
-Azure Monitor : Performance
-Azure Security Center : Security/Compliznce, summary
-   can install agent to Iaas/Paas 
-Azure Sentinel : Network Security in more detail
-   automated action. playbook/notebook, enterprise
-   Log Analytics, workspace, connectors
-
-Application Insights:
-  instrumentation = install agent
-
-Azure Monitor Log -> store in Log Analytics Workspace
-VM syslog, windows event log
-VM insights 
-
-Azure Alert <- Azure Monitor
-metric alert : CPU 95%
-activity log alert : resource deleted
-log alert : 404 error
-
 
 ---------------------------------------------------------
 #### Azure PowerShell
@@ -1407,52 +1450,6 @@ param([int]$size, [sgting]$location)
 UbuntuLTS (longterm support)
 
 
----------------------------------------------------------
-#### Move / Moving Resources / Azure Resource Mover
-1. inter subscription
-(VM) we cannot move VMs when
- - in backend pool of Load balancer
- - not when all resources in the VNet are moved together
- - Marketplace plan was installed
- - in an Availability set
-first disable disk encryption
-az vm encryption disable
-first stop backup
-Resources do not acctually move. Just affiliation changes,
-(only metadata changes)
-subscriptions must be in the same tenant
-need to apply role again
-Move-AzResource -DestinationSubscriptionID XX
-                -DestinationResourceGroupName xx
-		-ResourceID XX 
-move VM with managed disks
-App Service cannot move when,
-there are App Service in target resource group (web app, etc.) **
-VPN Gateway linked to a public IP cannot be moved
-NIC can only move when all dependencies (VM, VNet) come together
-Network can move without interruption
-Network cannot move when, 
-2. resource group
-3. regions 
-Network Interface can be created where VNet is
-(same subscription, same region)
-Pulbic IP addresses are _region specific_, cannot move.
-(Public IPs are taken from regional reserve)
-Policies: MG/Sub/RG/R
-Locks: Sub/RG/Resource: when on RG, cannot scale App
-
-Tags:  Sub/RG/Resource
-Read-Only RG: can add from outside. 
-
-(Moving Resources)
-- another virtual network
-- another resource gropu
-- another subscription
-- another region
-Deleting resource group
-+ check if other RG uses resource in
-Remove-AzResourceGropu -Name "ContosoRG01"
-Quota by _Subscription_
 ---------------------------------------------------------
 
 #### Azure CLI
@@ -1512,8 +1509,8 @@ pull mode: install DSC VM Extension, install WMF
 Local Configuration Manager applies desired state
 1. poll 2. Download 3. Compare 4. Update
 Puppet Agent: configuration management tool from Puppet. Open.
----------------------------------------------------------
 
+---------------------------------------------------------
 #### Desired State Configuration
 DSC is part of configuration management
 keep software installed in a VM constant.
