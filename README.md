@@ -388,39 +388,11 @@ max publication size : 1 MB
 =========================================================
 ### Storage
 ---------------------------------------------------------
-#### Storage Account
-Data in transitit : Client-Side Encryption, HTTPS, SMB 3.0
-Shared Access Signature : delegated access, time interval
-Authorization: RBAC,Sshared Key, SAS, Anonymous access (web contents)
+#### Storage Account 99.999% five nine
+(Access Tier/Level)
+Only StorageV2+Blob storage: hot/cool(30d)/archive(180d)
 
-99.999% five nine
-
-Premium Storage
-- Dynamic CRM, Exchange Server, SAP Business Suite,
-- SQL Server, Oracle, Share Point
-- LRS only
-
-Ultra Disk - can chanbe performance, no need to restart VM
-SAP HANA
-Dv3  : cannot use Premium
-Dsv3 : can use Premium
-
-Standard SSD: small size VM, but fast storage case
-
-LRS : 3 in 3 VMs   in a data center
-ZRS : 3 in 3 Zones in a region 
-GRS : 2 in 2 Regions
-GZRS : (3 in 3 Zones) x 2 in 2 Regions
-
-RA-GRS  : second one is read-only. only for backup 
-RA-GZRS : second one is read-only. only for backup 
-
-disk 'level'
-P4    -  P80
-32GB  -  32TB
----------------------------------------------------------
-#### Storage Account
-hot/cool(30d)/archive(180d) need StorageV2+Blob storage
+(Redundancy)
 GRS: GR + LRS
 RAGRS: GRS (one is read only. more expensive than GRS)
 GZRS: GR + ZRS
@@ -430,6 +402,35 @@ GRS: cannot read at zonal shutdown.
 RAGRS: can read at zonal shutdown. 
 BlobStorage: does not have ZRS
 price: Gp2 and Blob same price
+
+LRS : 3 in 3 VMs   in a data center
+ZRS : 3 in 3 Zones in a region 
+GRS : 2 in 2 Regions
+GZRS : (3 in 3 Zones) x 2 in 2 Regions
+
+RA-GRS  : second one is read-only. only for backup 
+RA-GZRS : second one is read-only. only for backup 
+
+(SKU)
+Premium Storage
+- Dynamic CRM, Exchange Server, SAP Business Suite,
+- SQL Server, Oracle, Share Point
+- LRS only
+
+disk 'level'
+P4    -  P80
+32GB  -  32TB
+
+Ultra Disk - can change performance, No need to restart VM
+SAP HANA
+Dv3  : cannot use Premium
+Dsv3 : can use Premium
+Standard SSD: small size VM, but fast storage case
+
+(Encryption)(Security) 
+Data in transit: Client-Side Encryption, HTTPS, SMB 3.0
+Shared Access Signature: delegated access, time interval
+Authorization: RBAC,Sshared Key, SAS, Anonymous access (web contents)
 
 ---------------------------------------------------------
 #### Azure Storage Explorer
@@ -444,7 +445,6 @@ connect to Storage - [connection string | SAS|account key]
 access keys (primary and secondary) : az storage account keys list
 Azure Storage/Azure Cosmos DB/Azure Data Lake
 ---------------------------------------------------------
-
 #### Shared Access Signature
 - Public Access, aka anonymous public read access
   + AllowBlobPublicAccess
