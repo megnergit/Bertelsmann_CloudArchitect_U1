@@ -110,16 +110,28 @@ Managed Disk: storage account managed. can scale out,
 RBAC access, snapshot (VM must be shutdown once), backup
 
 ---------------------------------------------------------
+#### Azure Function
+timeout 5 min, max 10 min.
+cannot execute a function that takes > 10 min
+=> Durable Functions
+stateless. statefull -> use storage
+HTTP, queue
+max 200 instance?
+
+pay-as-you-go: intermittant, autoscaling
+App Service: continuous (not severless)
+
+---------------------------------------------------------
 #### Azure Kubernetes Service
 Not Paas. only partly
 Node pool > Node > Deployment (YAML) > Pods > Container
 YAML: Manifest
-node: VM
-nodes in a Nodepool are all identical
-pods in a Deployments are all identical. manged by kubernetes
+Node: VM
+Nodes in a Nodepool are all identical
+Pods in a Deployments are all identical. Manged by kubernetes
 AKS Cluster two types of nodes
-- Azure managed nodes: control plane. orchestration. (free) 
-- Customer managed nodes: run apps. agend nodes
+- Azure managed nodes: Control plane. Orchestration. (free) 
+- Customer managed nodes: Run apps. Agent nodes
 kubelet: receives orchestration requests
 kube-proxy: on each node. _Route_ network traffic
 container runtime: containerd. to talk to storage and network
@@ -130,7 +142,7 @@ Services: groups pod. provide network connectivity to pods
 - LoadBalancer: over pods
 - ExternalName: DNS entry  
 Persistent storage 
-Volumes : a pod. gone with a pod
+Volumes: a pod. gone with a pod
 - Azure Disks (managed. Kubernetes Data Disk),
   Azure Premium Storage. mounted as ReadWriteOnce. 
   Single node
@@ -153,7 +165,7 @@ User need to update Kubernetes
 
 ---------------------------------------------------------
 #### Azure Container Instances
-Persistent Storage : need Azure Files Share 
+Persistent Storage: need Azure Files Share 
 az container create -g RG -n mycontainer --image mcr.microsoft.com/
 DNS name label: can create new, but must be unique $RANDOM
 az container show --query "{FQDN:ipAddress.fqdn}"
@@ -257,17 +269,6 @@ metric | scale to a specific instance count (schedule)
 #### Azure API Management Service
 Azure API Gateway : an instance of API Management Service
 
----------------------------------------------------------
-#### Azure Function
-timeout 5 min, max 10 min.
-cannot execute a function that takes > 10 min
-=> Durable Functions
-stateless. statefull -> use storage
-HTTP, queue
-max 200 instance?
-
-payasyougo : intermittant, autoscaling
-App Service: continuous (not severless)
 
 =========================================================
 ### Messaging
@@ -370,7 +371,6 @@ Standard SSD: small size VM, but fast storage case
 Data in transit: Client-Side Encryption, HTTPS, SMB 3.0
 Shared Access Signature: delegated access, time interval
 Authorization: RBAC,Sshared Key, SAS, Anonymous access (web contents)
-
 
 ---------------------------------------------------------
 #### Storage for Virtual Machine
@@ -568,7 +568,6 @@ azcopy copy [source] [dest] [flat]
 can copy data between two storage accounts
 run in background -> large files with fragile connection
 
-
 ---------------------------------------------------------
 #### Azure Caches for Redis
 transaction MULTI/EXEC/DISCARD
@@ -611,7 +610,7 @@ Virtual Private Network (VPN)
 = one virtual network that consits of Azure + On-premise)
 IP address must be unique inside a VPN)
 (scenario)
-ExpressRoute: No site-to-site. No encription. p2p. a2a. CloudExchange
+ExpressRoute: No site-to-site. No encription. p2p. a2a. CloudExchange.
 
 network security group: one for one subnet
 service endpoint: SQL/storage only from subnet with an endpoint
@@ -643,7 +642,7 @@ need static public ID
 
 Basic / Standard : cannot change afterward
 
-NSG : 5 tuple, multiplication, use 'Effective security rules'
+NSG: 5 tuple, multiplication, use 'Effective security rules'
 use inside VNet
 - default
 65000 AllowVnetInBound
@@ -696,7 +695,6 @@ x 10.0.0.0/16 - 10.0.0.0/17
 x 10.0.0.0/16 - 171.16.0.0/16
 When there are two connections, peering and VPN Gateway,
 traffict flows through Peering.
-
 
 ---------------------------------------------------------
 #### VPN Gateway
@@ -825,7 +823,6 @@ service traffic does not need to go to UDR
    - Key Vault
    - Service Bus/Event Hubs
 
-
 ---------------------------------------------------------
 #### Azure Firewall: stateful, (multiple) static IP, SNAT/DNAT
 unrestricted scalability, loggging, Azure Monitor
@@ -918,29 +915,6 @@ when Load Balancers SKU is Standard,
 public IP of LB must be Standard as well
 
 ---------------------------------------------------------
-#### User Defined Route Table
-System Route : default route inside a VNet, between Subnets
-User Defined Route: define NVA as a next hop
-1 route table to many subnets
-one subnet can have only one route table
-NVA are VMs
-1. Create Routing Table
-- Name, Subscription, RG, location, 
-- VNet route propagation
-  + current subnet route is automatically added to table
-2. Create Custom Route ('Add route')
-- Name
-- Address prefix (= subnet mask) 10.0.1.0/24
-- Next hop : [VNet Gateway, NVA, VNet, Internet...]
-  + let's say NVA is 10.0.2.4
-=> any incoming packets that are directed to 10.0.1.0/24
-   are sent to 10.0.2.4 first.
-3. Associate Route Table
-- 'Add subnet. 10.0.1.0/24, Route Table Name
-IP Fowarding: to pass a packet to other IP
-(it does not stop there <=> black hole) 
-
----------------------------------------------------------
 #### Azure Application Gateway
 a load balancer for web applications. URL base
 backedn: VM, VM scaleset, Azure App Service, on-premise
@@ -974,6 +948,29 @@ Web Application Firewall (WAF)
    - remote file inclusion
    - Bots, crawlers, scanners, HTTP protocol violations, anomalies
 OWASP: Core Rule Set (CRS), WAF CRS 2.2.9/3.0
+
+---------------------------------------------------------
+#### User Defined Route Table
+System Route : default route inside a VNet, between Subnets
+User Defined Route: define NVA as a next hop
+1 route table to many subnets
+one subnet can have only one route table
+NVA are VMs
+1. Create Routing Table
+- Name, Subscription, RG, location, 
+- VNet route propagation
+  + current subnet route is automatically added to table
+2. Create Custom Route ('Add route')
+- Name
+- Address prefix (= subnet mask) 10.0.1.0/24
+- Next hop : [VNet Gateway, NVA, VNet, Internet...]
+  + let's say NVA is 10.0.2.4
+=> any incoming packets that are directed to 10.0.1.0/24
+   are sent to 10.0.2.4 first.
+3. Associate Route Table
+- 'Add subnet. 10.0.1.0/24, Route Table Name
+IP Fowarding: to pass a packet to other IP
+(it does not stop there <=> black hole) 
 
 ---------------------------------------------------------
 #### Routing/Route/Router, Network Virtual Appliance, NVA
@@ -1136,32 +1133,9 @@ User/Authentication/Help Desk  Administrator
 ---------------------------------------------------------
 #### Azure Access Review
 To see who uses what, how much. 
----------------------------------------------------------
-#### Azure RBAC
-Azure subscription can take only one Azure AD
-Azure AD Conenct (must be installed in on-premise)
-Who: Security principal: User + application
-What: Role Definition = permissions 
-Where: Scope: Management Group, Subs, RG, R (not tenant)
-Azure AD roles <-> Azure roles
-in the middle Global Admin/User Access Admin
-must elevate yourself
-Azure AD roles: Global Admin/App Admin/App Developer
-Azure roles: Owner/Contributer/Reader/User Access Admin
-Service Admin/Co-Admins/Account Admin
-e.g. Resource Group -> Access control (IAM)
-1. security principal [user|group|service]
-2. role definition [built-in|custom]
-   "Actions": ["*"\
-   "NotActions": ["Auth/*/Delete","Auth/*/Write",...]
-   read, write, delete...
-   Owner:full access, delegate access to others
-   Contributor: full without delegate access to others, without blueprint
-   Readers: viewer
-   User Access Admin: nothing, but can delgate access to others
-3. Scope [management group|subscription|RG|resource]
-4. Role Assignment: go RG -> IAM -> security principal + role
-Azure RBAC: additive, not multiplicative  
+Need Azure AD P2
+Function of Identity Governance
+
 
 =========================================================
 ### Monitor
@@ -1397,6 +1371,33 @@ when no-allowed: VNet
 - but can move an existing VNet from other RG
 
 ---------------------------------------------------------
+#### Azure RBAC
+Azure subscription can take only one Azure AD
+Azure AD Conenct (must be installed in on-premise)
+Who: Security principal: User + application
+What: Role Definition = permissions 
+Where: Scope: Management Group, Subs, RG, R (not tenant)
+Azure AD roles <-> Azure roles
+in the middle Global Admin/User Access Admin
+must elevate yourself
+Azure AD roles: Global Admin/App Admin/App Developer
+Azure roles: Owner/Contributer/Reader/User Access Admin
+Service Admin/Co-Admins/Account Admin
+e.g. Resource Group -> Access control (IAM)
+1. security principal [user|group|service]
+2. role definition [built-in|custom]
+   "Actions": ["*"\
+   "NotActions": ["Auth/*/Delete","Auth/*/Write",...]
+   read, write, delete...
+   Owner:full access, delegate access to others
+   Contributor: full without delegate access to others, without blueprint
+   Readers: viewer
+   User Access Admin: nothing, but can delgate access to others
+3. Scope [management group|subscription|RG|resource]
+4. Role Assignment: go RG -> IAM -> security principal + role
+Azure RBAC: additive, not multiplicative  
+
+---------------------------------------------------------
 #### Azure PowerShell
 Ubuntu Devian apt-get
 RedHat CentOS yum
@@ -1450,9 +1451,7 @@ script.ps1 -size 5 -location "East US"
 param([int]$size, [sgting]$location)
 UbuntuLTS (longterm support)
 
-
 ---------------------------------------------------------
-
 #### Azure CLI
 az vm restart -g RG -n VM1
 Azure Cloud Shell <- Azure Portal |_>
