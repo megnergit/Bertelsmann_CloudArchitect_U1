@@ -1480,6 +1480,25 @@ on request up to 10000 vCPU
 --no-wait
 
 ---------------------------------------------------------
+#### ARM Template
+{
+"$schema"
+"contentVersion":"",
+"parameters":{},     # type, defaultValue, allowedValues
+"variables":{},
+"functions":[],
+"resources":[],
+"outputs":{}
+}
+quick start template
+if identical ARMT executed twice, nothing happens
+
+Get-AzSubscription
+$context = Get-AzSubscription -SubscriptionId {Your subscription ID}
+Set-AzContext $context
+Set-AzDefault -ResourceGroupName learn-09e42320-c4cd-434a-87a2-dcfa7246a4f2
+
+---------------------------------------------------------
 #### Azure Automation State Configuration
 Desired State Configuration, Azure Automation
 prevent 'drift'
@@ -1555,24 +1574,6 @@ software.
 *Azure Blueprint* : Use all of them above (hardware+software) from one
  place.
 
----------------------------------------------------------
-#### ARM Template
-{
-"$schema"
-"contentVersion":"",
-"parameters":{},     # type, defaultValue, allowedValues
-"variables":{},
-"functions":[],
-"resources":[],
-"outputs":{}
-}
-quick start template
-if identical ARMT executed twice, nothing happens
-
-Get-AzSubscription
-$context = Get-AzSubscription -SubscriptionId {Your subscription ID}
-Set-AzContext $context
-Set-AzDefault -ResourceGroupName learn-09e42320-c4cd-434a-87a2-dcfa7246a4f2
 ```
 =========================================================
 END
