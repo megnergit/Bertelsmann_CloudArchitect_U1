@@ -10,31 +10,31 @@
 2. Region
 3. Size
 4. Storage/OS
-compute: webserver, application server, network appliance
+compute: web server, application server, network appliance
 memory: SQL
 OS system disk : SATA
 data disk : SCSI
 Temp. disk : /dev/sdb /mnt
 UbuntuLTS (longterm support)
-monitor, agent, script, extention
+monitor, agent, script, extension
 window:rdp
 linux:ssh PuTTY
 Azure Bastion:PaaS RDP or SSH
 WinRM (Windows Remote Management): command-line session
 non-interactive PowerShell scripts. port 5986 (NSG!)
-1. Create Key Bault
+1. Create Key Vault
 2. Create self-signed certificate
 3. Upload self-signed certificate to Key vault
 4. Identify URL of certificate
 5. Refer URL in VM configuration
-Linux VM : SSH = encripted
+Linux VM : SSH = encrypted
 public Key => VM
 private Key => your laptop
 SSH-RSA 2048bit
 when you create a VM, automatically created
 NIC+NSG/VNet/Subnet/Disks
-defaul NSG 1000 RDP TCP 3389 Allow for inbound? 
-Virtual machine Scale Set:built-in update domate, 
+default NSG 1000 RDP TCP 3389 Allow for inbound? 
+Virtual machine Scale Set:built-in update domain, 
 20% of machines updated at once.
 ssh azureuser@ipaddress lsblk
 
@@ -42,8 +42,8 @@ ssh azureuser@ipaddress lsblk
 #### Virtual Machine Scale Set
 Unplanned Hardware Maintenance: live migration, low performance
 Unexpected Downtime: automatic heal, reboot
-Planned Mainenance: no impact
-availability set: VM should habe managed disks. 99.95%
+Planned Menainance: no impact
+availability set: VM should have 'managed disks'. 99.95%
 fault domain  
 update domain <= 20 
 availability zones: 99.99%
@@ -58,13 +58,13 @@ ScaleSetVM: default. VMs come with it.
 VM: empty Scale set. VM to be added manually
 
 ---------------------------------------------------------
-#### Virtual Machine Extention
+#### Virtual Machine Extension
 - Extensions
 - Custom Script
 - Desired State Configuration (DSC)
 
 (Extensions)
-small aplications. post-deployment configuration.
+small applications. post-deployment configuration.
 automation task. software installation. anti-virus protection.
 like an autoexec.bat.
 (Custom Script Extensions, CSE)
@@ -79,7 +79,7 @@ Configuration IISInstall{
    Ensure = "Present"
    Name = 'Web-Server"
 }}}
-default: 2 instances, 1 loadbalancer
+default: 2 instances, 1 load balancer
 health probe
 * az group create
 * az vmss create
@@ -114,11 +114,11 @@ RBAC access, snapshot (VM must be shutdown once), backup
 timeout 5 min, max 10 min.
 cannot execute a function that takes > 10 min
 => Durable Functions
-stateless. statefull -> use storage
+stateless. stateful -> use storage
 HTTP, queue
 max 200 instance?
 
-pay-as-you-go: intermittant, autoscaling
+pay-as-you-go: intermittent, autoscaling
 App Service: continuous (not severless)
 
 ---------------------------------------------------------
@@ -127,14 +127,14 @@ Not Paas. only partly
 Node pool > Node > Deployment (YAML) > Pods > Container
 YAML: Manifest
 Node: VM
-Nodes in a Nodepool are all identical
-Pods in a Deployments are all identical. Manged by kubernetes
+Nodes in a Node pool are all identical
+Pods in a Deployments are all identical. Managed by kubernetes
 AKS Cluster two types of nodes
 - Azure managed nodes: Control plane. Orchestration. (free) 
 - Customer managed nodes: Run apps. Agent nodes
 kubelet: receives orchestration requests
 kube-proxy: on each node. _Route_ network traffic
-container runtime: containerd. to talk to storage and network
+container runtime: containered. to talk to storage and network
 nodes -> virtual network (kube-proxy takes care)
 Services: groups pod. provide network connectivity to pods
 - Cluster IP: internal IP inside AKS cluster. internal only
@@ -146,18 +146,18 @@ Volumes: a pod. gone with a pod
 - Azure Disks (managed. Kubernetes Data Disk),
   Azure Premium Storage. mounted as ReadWriteOnce. 
   Single node
-- Azure Files, accesed by multiple nodes, SMB
+- Azure Files, accessed by multiple nodes, SMB
 Persistent volumes : StatefulSets. managed by Kubernetes API
   PersistentVolume. created by cluster admin
 - Azure Disk
 - Azure Files 
-Storage clases
+Storage class
 - default/managed-preimum/azurefile/azurefile-premium
 Scale out
 - pods (replica)
 - nodes (node count)
 Network 
-Kubenet: pods get their own IPs (to save IPs in VNet subnet),
+Kubernetes: pods get their own IPs (to save IPs in VNet subnet),
 No talking each other,
 nodes are on internal VNet subnet. pods are not on VNet.
 CNI: pods are on the VNet subnet
@@ -186,7 +186,7 @@ az container logs
 az container attach
 az container exec
 az monitor metrics list --resource CONTAINER_ID --metrics CPUUsage
-init Container: works at the begining, 
+init Container: works at the beginning, 
 set account, run script, configure database, etc. 
 same hardware with other workload containers
 
@@ -200,7 +200,7 @@ has a DNS name label
 has a public IP address/Port
 has two containers, one (port 80) and other (1433, MS SQL Server)
 has two Azure File Shares as volume mounts (one for each container)
-Dedployment 
+Deployment 
 1. ARM template (recommended)
 2. YAML 
 
@@ -216,7 +216,7 @@ az acr update -n NAME_UNIQ --admin-enabled true
 az acr credential show -n NAME_UNIQ => username, password
 az acr replication create
 az acr replication list
-can automate build and deploymen
+can automate build and deployment
 security, credential, encryption > Docker Hub
 webhook
 az acr task create
@@ -237,7 +237,7 @@ multiple Apps share one/more VM
 deploy slots share one/more VM
 diagnostics, backup also on same VM
 5 Apps on 5 VMs => scales simultaneously
-'Isolated' : app is resorce intensice/scale independently/in other geo
+'Isolated' : app is resource intensive/scale independently/in other geo
 Scale up: change plan. can scale down as well. a few seconds
 Scale out: number of VM. < 30 (Isolated. VM <100) 
 Autoscaling: VM instance-base. Scale-out (OR). Scale-in (AND)
@@ -286,13 +286,13 @@ topics: multiple subscription
 Service Bus Queue vs Storage Queue
 256 KB | 64 KB
 at-most-once/at-least-once | -
-FIFO | FIFO (not guranteed)
+FIFO | FIFO (not guaranteed)
 can group | -
 RBAC | -
-80GB| unlimite queue size
+80GB| unlimited queue size
  -  | log
 need SAS keys
-clients neeed
+clients need
 Namespace = endpoint bicycleService.servicebus.windows.net
 access key 
 Namespace + access key = connection string
@@ -307,7 +307,7 @@ replace Kafka
 Basic/[Standard]/Premium/Dedicated
 1. Create a namespace: throughput/pricing/performance metric
 az eventhubs namespace create
-2. Create event hub in the namespace: partition/rentention
+2. Create event hub in the namespace: partition/retention
 az eventhubs eventhub create
 
 3. create storage account at subscriber
@@ -370,11 +370,11 @@ Standard SSD: small size VM, but fast storage case
 (Encryption)(Security) 
 Data in transit: Client-Side Encryption, HTTPS, SMB 3.0
 Shared Access Signature: delegated access, time interval
-Authorization: RBAC,Sshared Key, SAS, Anonymous access (web contents)
+Authorization: RBAC,Shared Key, SAS, Anonymous access (web contents)
 
 ---------------------------------------------------------
 #### Storage for Virtual Machine
-- standard disk=HDD. Blobk, Page, 
+- standard disk=HDD. Block, Page, 
 - premium disk=SDD. Page Blob only
 Blob Storage (hot and cool. no archive). block blob, incremental blob
 OS Storage (System disk): \C:. <4GB. image. Linux 30GB, Windows 127GB
@@ -382,7 +382,7 @@ Temporary Storage: swap. \D:
 Data Storage: all others. persistent. < 32TB
 (All blob)
 
-Senario: onpremise -> azure
+Scenario: on-premises -> azure
 VHD (Virtual Hard Drive). Stored as page blob
 1. local disk -> VHD ('Add-AzVhd') -> Storage Account 
 2. -> connect to VM
@@ -401,7 +401,7 @@ az vm disk attach \
 az vm deallocate --resource-group --name
 az disk update  --resource-group --name --size-gb 200
 az vm start --resource-group --name
-expand particition 'diskpart' / parted / resize2fs
+expand partition 'diskpart' / parted / resize2fs
 
 az disk list \
   --query '[*].{Name:name,Gb:diskSizeGb,Tier:sku.tier}' \
@@ -444,7 +444,7 @@ credential: SAS, connection string, or account key
 azcopy: Blob storage (SAS/key/AD), File (SAS)
 
 Storage Management. 
-full access needs - access to strage acccount/container, Azure AD
+full access needs - access to storage account/container, Azure AD
 connect to Storage - [connection string | SAS|account key]
 access keys (primary and secondary) : az storage account keys list
 Azure Storage/Azure Cosmos DB/Azure Data Lake
@@ -461,7 +461,7 @@ Azure Storage/Azure Cosmos DB/Azure Data Lake
     - managed Identity: identity assigned to an App
     - App can access to Key Vault and so on
 - Shared Key
-  + two 512-bit keys (az storage account keys list) => Key Valut 
+  + two 512-bit keys (az storage account keys list) => Key Vault 
 - Shared Access Signature
   + read-only, read-write, expiration
   + User delegation / Service SAS / Account SAS
