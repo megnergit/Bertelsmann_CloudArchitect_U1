@@ -1,6 +1,14 @@
 =========================================================
-# AZ-104 Notebook including '30 Days Learn it' for Solutions Architect
-=========================================================
+# Bertelsmann Cloud Architect Phase 1
+
+The purpose of the note is to make reviewing the contents of 
+
+- Bertelsmann Scholarchip on Cloud Architect
+- Microsoft Learn for'30 Days to Learn it' for Solutions Architect 
+- Microsoft Learn Path for AZ-104
+
+easier and faster. 
+
 ```
 =========================================================
 ### Compute
@@ -1575,7 +1583,8 @@ software.
  place.
 
 ```
+
 =========================================================
-END
+# END
 =========================================================
 
